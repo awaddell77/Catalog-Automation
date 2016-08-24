@@ -2,8 +2,7 @@ from soupclass8 import *
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import getpass
-
-
+import sys
 
 
 class Cat_session(object):#parent class for this pseudo-API
@@ -23,7 +22,7 @@ class Cat_session(object):#parent class for this pseudo-API
 			data = input('>>')
 			self.interpreter(data)
 	def source(self):
-		return self.driver.page_source
+		return bs(self.driver.page_source, 'lxml')
 
 
 	def interpreter(self,*args):
@@ -33,7 +32,7 @@ class Cat_session(object):#parent class for this pseudo-API
 			return self.prod_s(x[1])'''
 
 
-	def session_start(self):#login method
+	def start(self):#login method
 		self.driver.get('https://accounts.crystalcommerce.com/users/sign_in')
 		element = self.driver.find_element_by_id('user_email')
 		element1 = self.driver.find_element_by_id('user_password')
@@ -63,9 +62,22 @@ class Cat_session(object):#parent class for this pseudo-API
 		self.cat_goto(x)
 		try:
 			checkbox = self.driver.find_element_by_id('all_products')
-			all_in_checkbox = self.driver.find_element_by_id('product_variation_category_id')
+			#all_in_checkbox = self.driver.execute_script('return document.getElementById("product_variation_category_id").click()')
 			checkbox.click()
+			self.driver.execute_script('document.getElementById("product_variation_category_id").click()')
+		except:
+			print("Something went wrong")
 		self.b_grab('btn btn-info','value', 'Push Skus to Clients').click()
+
+	def push_skus_cc(self, x):
+		#pushes skus for all child categories underneath a specified parent category (x)
+		self.cat_goto(x)
+		children = self.child_cats()
+		for i in range(0, len(children)):
+			self.push_skus(children[i])
+
+
+
 
 
 
@@ -79,6 +91,14 @@ class Cat_session(object):#parent class for this pseudo-API
 			if r_value == value:
 				return items[i]
 		return
+
+	def child_cats(self):
+		site = self.source()
+		target = site.find('h3').find_next()
+		links_r = S_table(target).table_eater_exp('a',1,3)
+		new = [fn_grab(S_format(str(links_r[i])).linkf('<a href=')) for i in range(0, len(links_r))]
+		return new
+
 
 
 
@@ -154,6 +174,15 @@ class Cat_search(Cat_session):
 
 
 
+
+if len(sys.argv) > 1:
+	if sys.argv[1] == '-t':
+		print(sys.argv[2])
+		splitter(sys.argv[2])
+	elif sys.argv[1] == '-s':
+		main_imp(sys.argv[2],sys.argv[3])
+else:
+	print("[data]")
 
 
 
