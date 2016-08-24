@@ -69,6 +69,23 @@ class Cat_session(object):#parent class for this pseudo-API
 			print("Something went wrong")
 		self.b_grab('btn btn-info','value', 'Push Skus to Clients').click()
 
+	def push_asins(self,x):
+		self.cat_goto(x)
+		try:
+			checkbox = self.driver.find_element_by_id('all_products')
+			checkbox.click()
+			self.driver.execute_script('document.getElementById("product_variation_category_id").click()')
+		except:
+			print("Something went wrong.")
+		self.b_grab('btn btn-info', 'value', 'Push ASINs to Clients').click()
+
+	def push_asins_cc(self, x):
+		#pushes ASINs for all child categories underneath a specified parent category (x)
+		self.cat_goto(x)
+		children = self.child_cats()
+		for i in range(0, len(children)):
+			self.push_asins(children[i])
+
 	def push_skus_cc(self, x):
 		#pushes skus for all child categories underneath a specified parent category (x)
 		self.cat_goto(x)
@@ -76,7 +93,30 @@ class Cat_session(object):#parent class for this pseudo-API
 		for i in range(0, len(children)):
 			self.push_skus(children[i])
 
+	def move_cat(self, x):
+		#moves a single item to a different category
+		self.prod_go_to(x + '/edit')
+		categories = self.driver.execute_script('document.getElementsByClassName("select required select2 wide-category-select")[0].children')
+		#clicks on the drop down menu
+		self.driver.execute_script('document.getElementsByClassName("select2-offscreen select2-focusser")[0].click();')
+		#once the menu has been clicked the options are now visible 
 
+
+	def prod_go_to(self, x):
+		url = 'https://catalog.crystalcommerce.com/products/' + x
+		self.driver.get(url)
+
+	def cat_find(self, x):
+		categories = self.driver.execute_script('return document.getElementsByClassName("select required select2 wide-category-select")[0].children')
+		for i in range(0, len(categories)):
+			cat = categories[i].get_attribute('value')
+			if x == cat:
+				name self.driver.execute_script('return document.getElementsByClassName("select required select2 wide-category-select")[0].children[%s].innerHTML;' % str(i))
+				return name
+		return
+
+
+		
 
 
 
