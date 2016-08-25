@@ -93,7 +93,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		for i in range(0, len(children)):
 			self.push_skus(children[i])
 
-	def move_cat(self, x):
+	def move_cat(self, x, target_cat):
 		#moves a single item to a different category
 		self.prod_go_to(x + '/edit')
 		categories = self.driver.execute_script('document.getElementsByClassName("select required select2 wide-category-select")[0].children')
@@ -102,21 +102,51 @@ class Cat_session(object):#parent class for this pseudo-API
 		#once the menu has been clicked the options are now visible 
 
 
+
 	def prod_go_to(self, x):
 		url = 'https://catalog.crystalcommerce.com/products/' + x
 		self.driver.get(url)
+
 
 	def cat_find(self, x):
 		categories = self.driver.execute_script('return document.getElementsByClassName("select required select2 wide-category-select")[0].children')
 		for i in range(0, len(categories)):
 			cat = categories[i].get_attribute('value')
 			if x == cat:
-				name self.driver.execute_script('return document.getElementsByClassName("select required select2 wide-category-select")[0].children[%s].innerHTML;' % str(i))
+				name = self.driver.execute_script('return document.getElementsByClassName("select required select2 wide-category-select")[0].children[%s].innerHTML;' % str(i))
 				return name
 		return
+	def descriptor_get(x):
+		d_info = {}
+		#retrieves the descriptors and their current values for a single product given its url or its product number
+		try:
+			int(x)
+		except ValueError as VE:
+			#if the argument is the full url (sans the '/edit' )
+			url = x + '/edit'
+			self.prod_go_to(url)
+		else:
+			url = 'https://catalog.crystalcommerce.com/products/' + str(x) + '/edit'
+			self.prod_go_to(url)
+
+		elements = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')")
+		d_element = "document.getElementsByClassName('control-group string optional product_product_descriptors_value')"
+		d_num = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[0].children.length")
+		for i in range(0, int(d_num) - 1):
+			name = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[%s].children[0].innerHTML;" % str(i))
+			d_info[name] = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[%s].children[1].value;" % str(i))
+		return d_info
 
 
+
+
+	def descriptor_edit(self, x):
+		#
 		
+
+
+
+
 
 
 
