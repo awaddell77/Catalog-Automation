@@ -141,7 +141,7 @@ class Cat_session(object):#parent class for this pseudo-API
 
 
 	def descriptor_edit(self, x):
-		#
+		pass
 		
 
 
