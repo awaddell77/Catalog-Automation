@@ -140,6 +140,7 @@ class Cat_session(object):#parent class for this pseudo-API
 
 
 
+
 	def descriptor_edit(self, x):
 		pass
 		
@@ -220,6 +221,48 @@ class S_results(object):#should probably be made a child of Cat_session once it 
 		new = [(S_format(str(cats[i])).linkf('<option value='), cats[i].text) for i in range(0, len(cats))]
 		#new should be a list of tuples containin the category ID and the category name
 		return new
+
+
+
+
+class Cat_product_add(object):
+	def __init__(self, session):
+		self.session = session
+	#need add_to_cat_single and add_to_cat_batch
+	def add_prod_cat_def(self, target_cat, attrs):
+		#adds a single product to a single category (id)
+		assert type(target_cat) == int, "{0} must be int".format(target_cat)
+		assert type(attrs) == dict, "{0} must be dict".format(attrs)
+		self.session.get("https://catalog.crystalcommerce.com/categories/{0}".format(target_cat))
+		new_b = self.session.execute_script(
+			'''for (i = 0 ; i < f.children.length ; i++){
+			if (f.children[i].innerHTML == "New Product"){
+      			f.children[i].click();
+			}
+			else{
+    			console.log("DID NOT FIND IT");
+			}}'''
+			)
+		
+
+
+
+
+		pass
+
+
+def dictionarify(x):
+	#should produce list of dictionaries from a csv, with the column headers as the keys
+	item = C_sort(x)
+	items = item.contents
+	crit = item.contents[0]
+	results = []
+	for i in range(1, len(items)):
+		d = dict.fromkeys(crit, 0)
+		for i_2 in range(0, len(items[i])):
+			d[crit[i_2]] = items[i][i_2]
+		results.append(d)
+	return results
 
 
 
