@@ -234,8 +234,10 @@ class Cat_product_add(object):
 		assert type(target_cat) == int, "{0} must be int".format(target_cat)
 		assert type(attrs) == dict, "{0} must be dict".format(attrs)
 		self.session.get("https://catalog.crystalcommerce.com/categories/{0}".format(target_cat))
-		new_b = self.session.execute_script(
-			'''for (i = 0 ; i < f.children.length ; i++){
+		self.session.execute_script(
+			'''
+			var f = document.getElementsByClassName('control-group')[0];
+			for (i = 0 ; i < f.children.length ; i++){
 			if (f.children[i].innerHTML == "New Product"){
       			f.children[i].click();
 			}
@@ -243,12 +245,45 @@ class Cat_product_add(object):
     			console.log("DID NOT FIND IT");
 			}}'''
 			)
-		
+		#cleaning asterisks from new product page
+		self.session.execute_script(''''
+			var items = fb_tn("abbr");
+			for (i = 0; i < items.length; i++){
+				rem_e(items[i]);
+
+			}
+
+			''')
+		keys = list(attrs.keys())
+		for i in range(0, len(keys)):
+			crit_find(keys[i], attrs[keys[i]])
+
+
+	def crit_find(self, crit, value):
+		result = self.session.execute_script(
+			''''
+			var items = fb_tn('label');
+			for (i = 0; i < items.length; i++){
+				var ind_item  = items[i].textContent;
+				if (ind_item.includes({0})) {
+					items[i].nextElementSibling.children.value = {1}
+					return True
+				}
+
+			}
+			return False
+			'''.format(crit, value))
+		if result:
+			return True
+		else:
+			return False
 
 
 
 
-		pass
+		#clicks the "New Product" button
+
+
 
 
 def dictionarify(x):
@@ -303,4 +338,16 @@ else:
 
 
 
+def j_script(x,target, atr_val):
 
+			'''
+
+			for (i = 0 ; i < f.children.length ; i++){
+			if (f.children[i]. == "New Product"){
+      			f.children[i].click();
+			}
+			else{
+    			console.log("DID NOT FIND IT");
+			}}'''
+			
+		
