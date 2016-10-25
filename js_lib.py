@@ -1,8 +1,6 @@
 #js function library
 #add string variable to document and then to the 
-js_funcs = [fb_id, fb_cn, fb_cn_m, fb_tn, rem_e]
-variables = []
-objects = []
+
 #finds an element by the id
 fb_id = '''
 		function fb_id(x) {
@@ -15,7 +13,7 @@ fb_id = '''
 			}
 
 		}'''
-#finds an element by the class name
+#finds an element by the class namef
 fb_cn = '''
 		function fb_cn(x){
 		var item = document.getElementsByClassName(x);
@@ -35,7 +33,7 @@ fb_cn_m = '''
 			return False;
 			}
 		else{
-			return item
+			return item;
 		}
 		}
 		'''
@@ -43,9 +41,8 @@ fb_cn_m = '''
 fb_tn= '''
 	function fb_tn(x){
 		var items = document.getElementsByTagName(x);
-		return items
-
-	}'''
+		return items;
+	};'''
 #removes an element
 rem_e = '''
 	function rem_e(x){
@@ -54,8 +51,18 @@ rem_e = '''
 
 		}'''
 fb_inner = '''
-	function fb_inner(x){
+	function fb_inner(x, target){
 	for (i = 0; i < x.length ; i++){
-		if (x[i].innerHTML)
+		if (x[i].innerHTML == target) {
+			return x[i];
+
+		}
+		else{
+			return False;
+		}
 	}
-	}
+	}'''
+
+js_funcs = [fb_id, fb_cn, fb_cn_m, fb_tn, rem_e, fb_inner]
+variables = []
+objects = []
