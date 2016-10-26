@@ -3,12 +3,15 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import getpass
 import sys
+import time
 
-
+text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
 class Cat_session(object):#parent class for this pseudo-API
 	def __init__(self, *args):
-		self.username = input('Username:') 
-		self.password = getpass.getpass('Password:')
+		#self.username = input('Username:') 
+		#self.password = getpass.getpass('Password:')
+		self.username = text_cred[0]
+		self.password = text_cred[1]
 		self.driver = webdriver.Firefox()
 		#in the future allow the user to select which browser to use (would need to make this a child of a parent that did that)
 		#self.driver = webdriver.PhantomJS()
@@ -245,44 +248,46 @@ class Cat_product_add(object):
     			console.log("DID NOT FIND IT");
 			}}'''
 			)
-		#cleaning asterisks from new product page
-		self.session.execute_script(''''
-			var items = fb_tn("abbr");
-			for (i = 0; i < items.length; i++){
-				rem_e(items[i]);
-
-			}
-
-			''')
+		start = session.driver.current_url
+		
 		keys = list(attrs.keys())
 		for i in range(0, len(keys)):
-			crit_find(keys[i], attrs[keys[i]])
+			self.crit_find(keys[i], attrs[keys[i]])
+		#need to add image loader here
+		self.session.execute_script(
+			'''for (i = 0; i < items.length ; i++){
+   					if ( items[i].value == "Create Product"){
+        			var result = items[i] ;
+        			result.click();
+			}}''')
+		while self.session.execute_script('return document.readyState') != "complete" and self.session.current_url == start:
+			time.sleep(.5)
+		final_url = self.session.current_url
+		product_id = fn_grab(final_url)
+		attrs["Product Id"] = product_id
+		return attrs
 
 
 	def crit_find(self, crit, value):
-		result = self.session.execute_script(
-			''''
-			var items = fb_tn('label');
-			for (i = 0; i < items.length; i++){
-				var ind_item  = items[i].textContent;
-				if (ind_item.includes({0})) {
-					items[i].nextElementSibling.children.value = {1}
-					return True
-				}
+		#should use a function in the future
+		#also needs exception handling
+		command = '''
+			var items = document.getElementsByTagName('label');
+			for (i = 0; i < items.length; i++){{
+				var ind_item  = items[i].innerHTML;
+				if (ind_item.includes('{0}')) {{
+					items[i].nextElementSibling.children[0].value = '{1}' ; 
+				}}
+				}}
+			'''.format(crit, value)
+		self.session.execute_script(command)
 
-			}
-			return False
-			'''.format(crit, value))
-		if result:
-			return True
-		else:
-			return False
 
 
 
 
 		#clicks the "New Product" button
-
+test_d = {"Product Name":'Test Name', "MSRP":'5.99', 'Barcode/UPC': '1337', 'Manufacturer SKU':'TEST 01'}
 
 
 
@@ -301,23 +306,11 @@ def dictionarify(x):
 
 
 
-
-
-
-
-
-class Cat_search(Cat_session):
-	def __init__(self, *args):
-		#super().__init__()
-		self.args = args
-		self.session_start()
-	def cat_s(self, cat_name):#searches for a category (cat_name)
-		element_1 = self.driver.find_element_by_link_text('Categories')#
-		element_1.click()
-		element_2 = self.driver.find_element_by_id('categories_search_q')
-		element_2.send_keys(cat_name)#puts cat_name into the search box
-		element_2.send_keys(Keys.RETURN)#using keystroke key in order to avoid accidently clicking other buttons (in case they change in the future)
-		return self.driver
+test_inst = Cat_session()
+test_inst.start()
+test_add = Cat_product_add(test_inst.driver)
+time.sleep(2)
+test_add.add_prod_cat_def(21333, test_d)
 
 
 
