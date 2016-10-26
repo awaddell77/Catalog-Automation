@@ -248,23 +248,27 @@ class Cat_product_add(object):
     			console.log("DID NOT FIND IT");
 			}}'''
 			)
-		start = session.driver.current_url
+		start = self.session.current_url
 		
 		keys = list(attrs.keys())
 		for i in range(0, len(keys)):
 			self.crit_find(keys[i], attrs[keys[i]])
 		#need to add image loader here
 		self.session.execute_script(
-			'''for (i = 0; i < items.length ; i++){
+			'''
+			var items = document.getElementsByTagName('*');
+			for (i = 0; i < items.length ; i++){
    					if ( items[i].value == "Create Product"){
         			var result = items[i] ;
         			result.click();
 			}}''')
 		while self.session.execute_script('return document.readyState') != "complete" and self.session.current_url == start:
 			time.sleep(.5)
+			#needs exception handling in order to catch any kickback from server regarding duplicate barcodes and/or ASINs
 		final_url = self.session.current_url
 		product_id = fn_grab(final_url)
 		attrs["Product Id"] = product_id
+		print(attrs)#only for testing
 		return attrs
 
 
