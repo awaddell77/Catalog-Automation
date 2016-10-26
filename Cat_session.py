@@ -107,7 +107,13 @@ class Cat_session(object):#parent class for this pseudo-API
 
 
 	def prod_go_to(self, x):
-		url = 'https://catalog.crystalcommerce.com/products/' + x
+		try:
+			int(x)
+		except ValueError as VE:
+			return "{0} must be an integer".format(x)
+
+
+		url = 'https://catalog.crystalcommerce.com/products/' + str(x)
 		self.driver.get(url)
 
 
@@ -119,7 +125,33 @@ class Cat_session(object):#parent class for this pseudo-API
 				name = self.driver.execute_script('return document.getElementsByClassName("select required select2 wide-category-select")[0].children[%s].innerHTML;' % str(i))
 				return name
 		return
-	def descriptor_get(x):
+	def delete_product_single (self, x):
+		self.prod_go_to(x)
+		start = self.driver.current_url
+		#ideally this function would store a temporary copy of the item in order to aid in
+		#the recovery of items that were deleted by mistake
+		self.driver.execute_script('''
+			var items = document.getElementsByClassName('btn btn-danger');
+			for (i = 0 ; i < items.length ; i++){
+				if (items[i].innerHTML.contains('Delete')){
+					items[i].click();
+				}
+			}
+
+
+			''')
+		try:
+			self.driver.switch_to_alert().accept()
+		except:
+			return (x, False)
+		while self.driver.execute_script('return document.readyState') != "complete" and self.driver.current_url == start:
+			time.sleep(.5)
+		return x
+
+
+
+
+	def descriptor_get(self, x):
 		d_info = {}
 		#retrieves the descriptors and their current values for a single product given its url or its product number
 		try:
@@ -232,8 +264,9 @@ class Cat_product_add(object):
 	def __init__(self, session):
 		self.session = session
 	#need add_to_cat_single and add_to_cat_batch
-	def add_prod_cat_def(self, target_cat, attrs):
+	def add_prod_cat_def(self, target_cat, attrs, image_folder="C:\\Users\\Owner\\Desktop\\I\\"):
 		#adds a single product to a single category (id)
+		def_image = "C:\\Users\\Owner\\Desktop\\I\\Card Backs & Logos\\no-image.jpg"
 		assert type(target_cat) == int, "{0} must be int".format(target_cat)
 		assert type(attrs) == dict, "{0} must be dict".format(attrs)
 		self.session.get("https://catalog.crystalcommerce.com/categories/{0}".format(target_cat))
@@ -252,8 +285,23 @@ class Cat_product_add(object):
 		
 		keys = list(attrs.keys())
 		for i in range(0, len(keys)):
-			self.crit_find(keys[i], attrs[keys[i]])
+			if keys[i] != "Category":
+				self.crit_find(keys[i], attrs[keys[i]])
 		#need to add image loader here
+		photo_name = d.get(attrs['Product Image'], def_image)
+		b_list = [def_images, '']
+		if photo_name not in b_list:
+			photo_path = image_folder + photo_name
+			check = add_image(photo_path)
+			if not check:
+				attrs['Photo Present'] = 0
+			else:
+				attrs['Photo Present'] = 1
+		
+
+
+
+
 		self.session.execute_script(
 			'''
 			var items = document.getElementsByTagName('*');
@@ -270,6 +318,25 @@ class Cat_product_add(object):
 		attrs["Product Id"] = product_id
 		print(attrs)#only for testing
 		return attrs
+	def add_prod_cat_batch(self, fname):
+		results = []
+		items = dictionarify(fname)
+		for i in range(0, len(items)):
+			confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
+			results.append(list(confirm.values())) #for testing only, ideally this should make an entry into a database
+		return results
+	def add_image(self, image_name):
+		try:
+			photo_element = self.session.find_element_by_id('product_photo')
+		except:
+			return False
+		photo_element.send_keys(image_name)
+
+		
+
+
+
+
 
 
 	def crit_find(self, crit, value):
@@ -312,9 +379,12 @@ def dictionarify(x):
 
 test_inst = Cat_session()
 test_inst.start()
-test_add = Cat_product_add(test_inst.driver)
-time.sleep(2)
-test_add.add_prod_cat_def(21333, test_d)
+time.sleep(5)
+test_inst.delete_product_single(6317013)
+#test_add = Cat_product_add(test_inst.driver)
+#time.sleep(2)
+#test_add.add_prod_cat_def(21333, test_d)
+#test_add.add_prod_cat_batch('test_csv.csv')
 
 
 
