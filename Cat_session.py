@@ -2,7 +2,7 @@ from soupclass8 import *
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import getpass
-import sys
+import sys, re
 import time
 
 text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
@@ -146,6 +146,7 @@ class Cat_session(object):#parent class for this pseudo-API
 			return (x, False)
 		while self.driver.execute_script('return document.readyState') != "complete" and self.driver.current_url == start:
 			time.sleep(.5)
+		print("Successfully deleted {0}".format(x))
 		return x
 
 
@@ -288,8 +289,8 @@ class Cat_product_add(object):
 			if keys[i] != "Category":
 				self.crit_find(keys[i], attrs[keys[i]])
 		#need to add image loader here
-		photo_name = d.get(attrs['Product Image'], def_image)
-		b_list = [def_images, '']
+		photo_name = attrs.get('Product Image', def_image)
+		b_list = [def_image, '']
 		if photo_name not in b_list:
 			photo_path = image_folder + photo_name
 			check = add_image(photo_path)
@@ -342,6 +343,8 @@ class Cat_product_add(object):
 	def crit_find(self, crit, value):
 		#should use a function in the future
 		#also needs exception handling
+		value = re.sub("'", "\\'",  value)
+		value = re.sub('"', '\\"', value)
 		command = '''
 			var items = document.getElementsByTagName('label');
 			for (i = 0; i < items.length; i++){{
@@ -380,8 +383,8 @@ def dictionarify(x):
 test_inst = Cat_session()
 test_inst.start()
 time.sleep(5)
-test_inst.delete_product_single(6317013)
-#test_add = Cat_product_add(test_inst.driver)
+#test_inst.delete_product_single(6317013)
+test_add = Cat_product_add(test_inst.driver)
 #time.sleep(2)
 #test_add.add_prod_cat_def(21333, test_d)
 #test_add.add_prod_cat_batch('test_csv.csv')
