@@ -293,7 +293,7 @@ class Cat_product_add(object):
 		b_list = [def_image, '']
 		if photo_name not in b_list:
 			photo_path = image_folder + photo_name
-			check = add_image(photo_path)
+			check = self.add_image(photo_path)
 			if not check:
 				attrs['Photo Present'] = 0
 			else:
@@ -325,6 +325,7 @@ class Cat_product_add(object):
 		for i in range(0, len(items)):
 			confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
 			results.append(list(confirm.values())) #for testing only, ideally this should make an entry into a database
+		w_csv(results, 'batch_create.csv')
 		return results
 	def add_image(self, image_name):
 		try:
@@ -332,6 +333,27 @@ class Cat_product_add(object):
 		except:
 			return False
 		photo_element.send_keys(image_name)
+	def update_image(self, prod_id, image_name):
+		assert type(prod_id) == int, "Product Id must be int"
+		start = self.session.current_url
+		url = 'https://catalog.crystalcommerce.com/products/' + str(x) + '/edit'
+		self.session.get(url)
+		while load_check(start):
+			time.sleep(.3)
+		self.add_image(image_name)
+
+	def load_check(self, start):
+		#takes initial url (url of page before request) as argument
+
+		if self.session.execute_script('return document.readyState') != "complete" and self.session.current_url == start:
+			return True
+		else:
+			return False
+
+
+
+
+
 
 		
 
