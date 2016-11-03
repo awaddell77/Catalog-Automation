@@ -285,8 +285,13 @@ class Cat_product_add(object):
 		start = self.session.current_url
 		
 		keys = list(attrs.keys())
+		if "Product Name" not in keys:
+			raise Crit_not_present("Product Name desciptor not found")
+		self.crit_find("Product Name", attrs["Product Name"])
+		#product name must be added first in order to prevent it from being overridden by unneccessary/improper descriptors (e.g. "Name")
+
 		for i in range(0, len(keys)):
-			if keys[i] != "Category":
+			if keys[i] != "Category" or keys[i] != "Product Name":
 				self.crit_find(keys[i], attrs[keys[i]])
 		#need to add image loader here
 		photo_name = attrs.get('Product Image', def_image)
@@ -299,7 +304,6 @@ class Cat_product_add(object):
 			else:
 				attrs['Photo Present'] = 1
 		
-
 
 
 
@@ -371,7 +375,7 @@ class Cat_product_add(object):
 			var items = document.getElementsByTagName('label');
 			for (i = 0; i < items.length; i++){{
 				var ind_item  = items[i].innerHTML;
-				if (ind_item.includes('{0}')) {{
+				if (ind_item.includes('{0}') && items[i].nextElementSibling.children[0].value == '') {{
 					items[i].nextElementSibling.children[0].value = '{1}' ; 
 				}}
 				}}
@@ -383,7 +387,7 @@ class Cat_product_add(object):
 
 
 		#clicks the "New Product" button
-test_d = {"Product Name":'Test Name', "MSRP":'5.99', 'Barcode/UPC': '1337', 'Manufacturer SKU':'TEST 01'}
+test_d = {"Product Name":'  Captain America - 1', "MSRP":'5.99', 'Barcode/UPC': '1337', 'Manufacturer SKU':'TEST 01', 'Category': 22054}
 
 
 
@@ -425,6 +429,8 @@ else:
 
 
 
+class Crit_not_present(Exception):
+	pass
 
 
 
