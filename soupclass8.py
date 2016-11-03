@@ -837,7 +837,7 @@ def dupe_erase(x):
 
 def r_csv(x,mode='rt'):
     l = []
-    csv_in = open(x, mode, encoding = 'utf-8')
+    csv_in = open(x, mode, encoding = 'utf-8', errors= 'ignore')
     myreader = csv.reader(csv_in)
     for row in myreader:
         l.append(row)
