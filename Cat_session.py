@@ -325,11 +325,23 @@ class Cat_product_add(object):
 		return attrs
 	def add_prod_cat_batch(self, fname):
 		results = []
+		failure_list = []
 		items = dictionarify(fname)
 		for i in range(0, len(items)):
-			confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
-			results.append(list(confirm.values())) #for testing only, ideally this should make an entry into a database
+			try:
+				confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
+			except:
+				print("ERROR HAS OCCCURED")
+				failed_item = S_format(items[i]).d_sort()
+				failure_list.append(failed_item)
+
+			else:
+				results.append(list(confirm.values())) 
+				#for testing only, ideally this should make an entry into a database
 		w_csv(results, 'batch_create.csv')
+		if failure_list != []:
+			print("Some items were not added due to errors. Please see fail_file.csv for more")
+			w_csv(failure_list, "fail_file.csv")
 		return results
 	def add_image(self, image_name):
 		try:
@@ -355,22 +367,12 @@ class Cat_product_add(object):
 			return False
 
 
-
-
-
-
-		
-
-
-
-
-
-
 	def crit_find(self, crit, value):
 		#should use a function in the future
 		#also needs exception handling
-		value = re.sub("'", "\\'",  value)
-		value = re.sub('"', '\\"', value)
+		value = re.sub("'", "\\\'",  value)
+		value = re.sub('"', '\\\"', value)
+
 		command = '''
 			var items = document.getElementsByTagName('label');
 			for (i = 0; i < items.length; i++){{
