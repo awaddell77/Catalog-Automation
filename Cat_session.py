@@ -287,6 +287,8 @@ class Cat_product_add(object):
 		keys = list(attrs.keys())
 		if "Product Name" not in keys:
 			raise Crit_not_present("Product Name desciptor not found")
+		if "Category" not in keys:
+			raise Crit_not_present("Category id not present")
 		self.crit_find("Product Name", attrs["Product Name"])
 		#product name must be added first in order to prevent it from being overridden by unneccessary/improper descriptors (e.g. "Name")
 
