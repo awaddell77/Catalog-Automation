@@ -70,6 +70,7 @@ class Cat_session(object):#parent class for this pseudo-API
 			self.driver.execute_script('document.getElementById("product_variation_category_id").click()')
 		except:
 			print("Something went wrong")
+			#self.driver.execute_script('document.getElementById("product_variation_category_id").click()')
 		self.b_grab('btn btn-info','value', 'Push Skus to Clients').click()
 
 	def push_asins(self,x):
@@ -95,6 +96,25 @@ class Cat_session(object):#parent class for this pseudo-API
 		children = self.child_cats()
 		for i in range(0, len(children)):
 			self.push_skus(children[i])
+
+	def push_pinfo_cc(self, x):
+		#pushes product data  for all child categories underneath a specified parent category (x)
+		self.cat_goto(x)
+		children = self.child_cats()
+		for i in range(0, len(children)):
+			self.push_pinfo(children[i])
+
+	def push_pinfo(self,x):
+		self.cat_goto(x)
+		try:
+			checkbox = self.driver.find_element_by_id('all_products')
+			#all_in_checkbox = self.driver.execute_script('return document.getElementById("product_variation_category_id").click()')
+			checkbox.click()
+			self.driver.execute_script('document.getElementById("product_variation_category_id").click()')
+		except:
+			print("Something went wrong")
+			#self.driver.execute_script('document.getElementById("product_variation_category_id").click()')
+		self.b_grab('btn btn-info','value', 'Push Product Data to Clients').click()
 
 	def move_cat(self, x, target_cat):
 		#moves a single item to a different category
@@ -334,10 +354,15 @@ class Cat_product_add(object):
 				confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
 			except:
 				print("ERROR HAS OCCCURED")
+				#neeeds to be more specific
 				failed_item = S_format(items[i]).d_sort()
 				failure_list.append(failed_item)
 
 			else:
+				if confirm['Product Id'] == 'products':
+					#attempts to add the item again
+					confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
+
 				results.append(list(confirm.values())) 
 				#for testing only, ideally this should make an entry into a database
 		w_csv(results, 'batch_create.csv')
