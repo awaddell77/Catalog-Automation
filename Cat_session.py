@@ -4,6 +4,7 @@ from selenium.webdriver.common.keys import Keys
 import getpass
 import sys, re
 import time
+from log import entry_maker
 
 text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
 class Cat_session(object):#parent class for this pseudo-API
@@ -337,18 +338,37 @@ class Cat_product_add(object):
         			var result = items[i] ;
         			result.click();
 			}}''')
-		while self.session.execute_script('return document.readyState') != "complete" and self.session.current_url == start:
+		while self.session.execute_script('return document.readyState') != "complete" or self.session.current_url == start:
 			time.sleep(.5)
 			#needs exception handling in order to catch any kickback from server regarding duplicate barcodes and/or ASINs
 		final_url = self.session.current_url
 		product_id = fn_grab(final_url)
 		attrs["Product Id"] = product_id
+		entry_maker(attrs["Product Name"]) 
+		#creates a log entry for the product (ideally this should happen in bulk after all items have been added)
 		print(attrs)#only for testing
 		return attrs
-	def add_prod_cat_batch(self, fname):
+
+	def add_prod_cat_batch(self, fname, log = 0):
 		results = []
+		results_names = []
+		pcheck_list = []
 		failure_list = []
 		items = dictionarify(fname)
+		#checks for errors
+		for i in range(0, len(items)):
+			try:
+				self.error_check(items[i])
+			except Crit_not_present as CnP:
+				pcheck_list.append(S_format(items[i]).d_sort())
+		if pcheck_list != []:
+			print('Product Name or Category ID were not found in one or more of the items')
+			return pcheck_list
+		#proceeds to create the items
+
+
+
+
 		for i in range(0, len(items)):
 			try:
 				confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
@@ -359,17 +379,30 @@ class Cat_product_add(object):
 				failure_list.append(failed_item)
 
 			else:
-				if confirm['Product Id'] == 'products':
-					#attempts to add the item again
-					confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
-
 				results.append(list(confirm.values())) 
+				results_names.append(confirm['Product Name'])
 				#for testing only, ideally this should make an entry into a database
 		w_csv(results, 'batch_create.csv')
 		if failure_list != []:
 			print("Some items were not added due to errors. Please see fail_file.csv for more")
 			w_csv(failure_list, "fail_file.csv")
+		if log != 0:
+			for i in range(0, len(results_names)):
+				entry_maker(str(results_names[i]))
 		return results
+	def error_check(self, x):
+		error_list = []
+		assert type(x) == dict, "Argument must be dictionary."
+		#checks to see if there is a product name and a category column
+		keys = list(x.keys())
+		if "Product Name" not in keys:
+			raise Crit_not_present("Product Name desciptor not found")
+		if "Category" not in keys:
+			raise Crit_not_present("Category id not present")
+		#checks to see if each item has a product name and a category number
+
+
+
 	def add_image(self, image_name):
 		try:
 			photo_element = self.session.find_element_by_id('product_photo')
@@ -397,6 +430,7 @@ class Cat_product_add(object):
 	def crit_find(self, crit, value):
 		#should use a function in the future
 		#also needs exception handling
+		value = str(value).strip(' ')
 		value = re.sub("'", "\\\'",  value)
 		value = re.sub('"', '\\\"', value)
 
