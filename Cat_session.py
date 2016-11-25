@@ -311,10 +311,11 @@ class Cat_product_add(object):
 		if "Category" not in keys:
 			raise Crit_not_present("Category id not present")
 		self.crit_find("Product Name", attrs["Product Name"])
+		self.crit_find("Manufacturer SKU", attrs["Manufacturer SKU"])
 		#product name must be added first in order to prevent it from being overridden by unneccessary/improper descriptors (e.g. "Name")
-
+		keys_added = ['Category', 'Product Name', 'Manufacturer SKU']
 		for i in range(0, len(keys)):
-			if keys[i] != "Category" or keys[i] != "Product Name":
+			if keys[i] not in keys_added:
 				self.crit_find(keys[i], attrs[keys[i]])
 		#need to add image loader here
 		photo_name = attrs.get('Product Image', def_image)
@@ -379,9 +380,12 @@ class Cat_product_add(object):
 				failure_list.append(failed_item)
 
 			else:
-				results.append(list(confirm.values())) 
-				results_names.append(confirm['Product Name'])
-				#for testing only, ideally this should make an entry into a database
+				if confirm['Product Id'] == "products":
+					failure_list.append(S_format(items[i]).d_sort())
+				else:
+					results.append(list(confirm.values()))
+					results_names.append(confirm['Product Name'])
+					#for testing only, ideally this should make an entry into a database
 		w_csv(results, 'batch_create.csv')
 		if failure_list != []:
 			print("Some items were not added due to errors. Please see fail_file.csv for more")
