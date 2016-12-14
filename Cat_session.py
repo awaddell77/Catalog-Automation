@@ -61,6 +61,28 @@ class Cat_session(object):#parent class for this pseudo-API
 		element_1 = self.driver.find_element_by_link_text('New Category')
 		element_1.click()
 		return self.driver
+	def s_to_a(self,x):
+		#navigates to item by using its product Id (x) and clicks the "Submit to Amazon" button
+		self.prod_go_to(x)
+		self.driver.execute_script(
+			'''
+			var f = document.getElementsByClassName('form-actions')[1];
+			for (i = 0 ; i < f.children.length ; i++){
+			if (f.children[i].innerHTML == "Submit to Amazon"){
+      			f.children[i].click();
+			}
+			else{
+    			console.log("DID NOT FIND IT");
+			}}'''
+			)
+		while self.driver.execute_script('document.readyState') != 'complete':
+			time.sleep(.5)
+	def s_to_a_batch(self, x):
+		p_ids = r_csv(x)
+		#csv with just the product IDs
+		for i in range(0, len(p_ids)):
+			self.s_to_a(p_ids[i])
+		return "Complete"
 
 	def push_skus(self,x):
 		self.cat_goto(x)
@@ -311,7 +333,8 @@ class Cat_product_add(object):
 		if "Category" not in keys:
 			raise Crit_not_present("Category id not present")
 		self.crit_find("Product Name", attrs["Product Name"])
-		self.crit_find("Manufacturer SKU", attrs["Manufacturer SKU"])
+		if "Manufacturer SKU" in keys:
+			self.crit_find("Manufacturer SKU", attrs["Manufacturer SKU"])
 		#product name must be added first in order to prevent it from being overridden by unneccessary/improper descriptors (e.g. "Name")
 		keys_added = ['Category', 'Product Name', 'Manufacturer SKU']
 		for i in range(0, len(keys)):
@@ -381,7 +404,7 @@ class Cat_product_add(object):
 
 			else:
 				if confirm['Product Id'] == "products":
-					failure_list.append(S_format(items[i]).d_sort())
+					failure_list.append(list(items[i]))
 				else:
 					results.append(list(confirm.values()))
 					results_names.append(confirm['Product Name'])
