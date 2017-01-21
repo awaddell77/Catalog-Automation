@@ -325,7 +325,12 @@ class Cat_product_add(object):
     			console.log("DID NOT FIND IT");
 			}}'''
 			)
+
+		while self.session.execute_script('return document.readyState') != "complete":
+			#this is here to prevent the product name from being added before the page is finished loading
+			time.sleep(.1)
 		start = self.session.current_url
+		
 		
 		keys = list(attrs.keys())
 		if "Product Name" not in keys:
@@ -368,7 +373,7 @@ class Cat_product_add(object):
 		final_url = self.session.current_url
 		product_id = fn_grab(final_url)
 		attrs["Product Id"] = product_id
-		entry_maker(attrs["Product Name"]) 
+		entry_maker([attrs["Product Name"]]) 
 		#creates a log entry for the product (ideally this should happen in bulk after all items have been added)
 		print(attrs)#only for testing
 		return attrs
@@ -404,11 +409,11 @@ class Cat_product_add(object):
 
 			else:
 				if confirm['Product Id'] == "products":
-					failure_list.append(list(items[i]))
+					failure_list.append(list(S_format(items[i]).d_sort()))
 				else:
 					results.append(list(confirm.values()))
 					results_names.append(confirm['Product Name'])
-					#for testing only, ideally this should make an entry into a database
+					#for testing only,   ideally this should make an entry into a database
 		w_csv(results, 'batch_create.csv')
 		if failure_list != []:
 			print("Some items were not added due to errors. Please see fail_file.csv for more")
@@ -538,3 +543,6 @@ def j_script(x,target, atr_val):
 			}}'''
 			
 		
+def add(x):
+	test_add.add_prod_cat_batch(x)
+	return "Complete"
