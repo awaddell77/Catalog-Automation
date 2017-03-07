@@ -529,6 +529,37 @@ class Crit_not_present(Exception):
 
 
 
+def descriptor_get(x):
+	#returns the every descriptor on the product page as a dictionary
+	#takes beautifulsoup object
+	d = {}
+	bsObject = x
+	pi_page = x.find('div', {'class':'product'})
+	#default descriptors
+	d["Product Name"] = pi_page.find('h2', {'class':'product_name'}).text
+	d["Product Type"] = pi_page.find('h4', {'class': 'product_type_name'}).a.text
+	#finding the image
+	image_col = bsObject.find('div', {'class':'span4'})
+	image_rows = image_col.find_all('li')
+	image_link_element = image_rows[0].find('a',{'class':'thumbnail'})
+	image_link = 'https:' + S_format(str(image_link_element)).linkf('href=').split('?')[0]
+	d["Product Image Link"] = image_link
+	d["Product Image"] = fn_grab(image_link) 
+	table = pi_page.find('table')
+	rows = table.find_all('tr')
+	for i in range(0, len(rows)):
+		d[rows[i].find('th').text] = rows[i].find('th').find_next('td').text
+	#unique descriptors (i.e. the descriptors of the product type)
+	desc_table = pi_page.find('table', {'id':'product_descriptors'}).tbody
+	desc_rows = desc_table.find_all('tr')
+	for i in range(0, len(desc_rows)):
+		d[desc_rows[i].find('th').text] = desc_rows[i].find('th').find_next('td').text
+	return d
+
+
+
+
+
 
 def j_script(x,target, atr_val):
 
