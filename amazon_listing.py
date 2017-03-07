@@ -14,6 +14,7 @@ class Main(object):
 		self.barcodes = r_csv(barcodes)
 		self.params = kwargs
 	def g_info(self):
+		#needs to
 		results = []
 		for i in range(0, len(self.f_contents)):
 			name_d = self.params.get('Name_d', "Name")
@@ -84,4 +85,3 @@ def t_main(x):
 	test_obj = Main(x)
 	results = test_obj.g_info()
 	return results
-
