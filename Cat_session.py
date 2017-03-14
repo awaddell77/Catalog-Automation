@@ -5,6 +5,7 @@ import getpass
 import sys, re
 import time
 from log import entry_maker
+from dbaseObject import *
 
 text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
 class Cat_session(object):#parent class for this pseudo-API
@@ -14,6 +15,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		self.username = text_cred[0]
 		self.password = text_cred[1]
 		self.driver = webdriver.Firefox()
+		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'preorders', '192.168.5.90')
 		#in the future allow the user to select which browser to use (would need to make this a child of a parent that did that)
 		#self.driver = webdriver.PhantomJS()
 		self.args = args
@@ -304,9 +306,11 @@ class S_results(object):#should probably be made a child of Cat_session once it 
 
 
 
-class Cat_product_add(object):
-	def __init__(self, session):
-		self.session = session
+class Cat_product_add(Cat_session):
+	def __init__(self):
+		super().__init__()
+		self.session = self.driver #didn't want to find and replace all the "session" references in the class
+
 	#need add_to_cat_single and add_to_cat_batch
 	def add_prod_cat_def(self, target_cat, attrs, image_folder="C:\\Users\\Owner\\Desktop\\I\\"):
 		#adds a single product to a single category (id)
@@ -374,9 +378,14 @@ class Cat_product_add(object):
 		product_id = fn_grab(final_url)
 		attrs["Product Id"] = product_id
 		entry_maker([attrs["Product Name"]]) 
+		dbase_info = ''
 		#creates a log entry for the product (ideally this should happen in bulk after all items have been added)
 		print(attrs)#only for testing
 		return attrs
+	def add_to_pos(self, host = '192.168.5.90'):
+		pass
+
+
 
 	def add_prod_cat_batch(self, fname, log = 0):
 		results = []
@@ -501,11 +510,12 @@ def dictionarify(x):
 
 
 
-test_inst = Cat_session()
-test_inst.start()
-time.sleep(5)
+#test_inst = Cat_session()
+#test_inst.start()
+#time.sleep(5)
 #test_inst.delete_product_single(6317013)
-test_add = Cat_product_add(test_inst.driver)
+test_add = Cat_product_add()
+test_add.start()
 #time.sleep(2)
 #test_add.add_prod_cat_def(21333, test_d)
 #test_add.add_prod_cat_batch('test_csv.csv')
