@@ -6,13 +6,14 @@ def_d = {"item_type":"collectible-single-trading-cards", "item_sku":'', "externa
   "product_description":'', "main_image_url":'', "target_audience_keywords":'teenage boys',
   "bullet_point1":'',	"bullet_point2":'', "bullet_point3":'', "generic_keywords":''}
 
-browser = test_inst
+browser = test_add
 #this is the main browser object that will be used to pull picture links from the catalog
 class Main(object):
 	def __init__(self, fname, barcodes, **kwargs):
 		self.f_contents = dictionarify(fname)
 		self.barcodes = r_csv(barcodes)
 		self.params = kwargs
+		self.last_info = []
 	def g_info(self):
 		#needs to
 		results = []
@@ -22,24 +23,26 @@ class Main(object):
 			def_tcg = "Magic: the Gathering (MTG)"
 			new_d = copy.deepcopy(def_d)
 			new_d["Product Name"] = self.f_contents[i].get("Product Name", 'N/A') + ' - ' + self.f_contents[i].get('Set Name', 'N/A')
-			new_d["brand_name"] = self.params.get('TCG', def_tcg)
-			new_d["manufacturer"] = self.params.get('Man', new_d["manufacturer"])
+			#new_d["brand_name"] = self.params.get('TCG', def_tcg)
+			#new_d["manufacturer"] = self.params.get('Man', new_d["manufacturer"])
 			browser.prod_go_to(self.f_contents[i]['Product Id'])
 			bsObject = browser.source()
 			image_link = image_get(bsObject)
 			price = "'" + str(random.randint(1,301) / 100)
 			new_d['MSRP'] = price
 			new_d['item_sku'] = self.f_contents[i]['Product Id']
-			new_d['item_name'] = self.f_contents[i][name_d] + ' - ' + self.f_contents[i].get('Finish', 'Regular')
+			#new_d['item_name'] = self.f_contents[i][name_d] + ' - ' + self.f_contents[i].get('Finish', 'Regular')
 			new_d['main_image_url'] = image_link
-			new_d['bullet_point1'] = '1x ' + self.f_contents[i][name_d]
-			new_d['bullet_point2'] = 'This card has a ' + self.f_contents[i].get('Finish', 'Regular') + ' finish'
-			new_d['bullet_point3'] = 'Rarity: ' + self.f_contents[i]['Rarity']
+			#new_d['bullet_point1'] = '1x ' + self.f_contents[i][name_d]
+			#new_d['bullet_point2'] = 'This card has a ' + self.f_contents[i].get('Finish', 'Regular') + ' finish'
+			#new_d['bullet_point3'] = 'Rarity: ' + self.f_contents[i]['Rarity']
 			new_d['product_description'] = 'A single individual card from the' + self.params.get('TCG', def_tcg) + ' trading and collectible card game (TCG/CCG). This is of the ' + self.f_contents[i]['Rarity'] + ' rarity.'
 			results.append(new_d)
 		#results = self.barcode_grab(results)
 		new_csv(results)
+		self.last_info = results
 		return results
+
 	def barcode_grab(self, x):
 		for i in range(0, len(x)):
 			for i_2 in range(len(self.barcodes), -1, -1):
