@@ -217,6 +217,9 @@ class Cat_session(object):#parent class for this pseudo-API
 			name = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[%s].children[0].innerHTML;" % str(i))
 			d_info[name] = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[%s].children[1].value;" % str(i))
 		return d_info
+	def quit(self):
+		#quits the driver
+		self.driver.quit()
 
 
 
@@ -310,8 +313,55 @@ class Cat_product_add(Cat_session):
 	def __init__(self):
 		super().__init__()
 		self.session = self.driver #didn't want to find and replace all the "session" references in the class
+		self.__add_list = []
+		self.__tba_lst = []
+	def get_addlst(self):
+		return self.__add_list
+	def reset_addlst(self):
+		self.__add_list = []
+
+	def set_tba_list(self, x):
+		if type(x) == str:
+			self.__tba_lst = dictionarify(x)
+		elif type(x) == list or type(x) == tuple:
+			self.__tba_lst = x
+		else:
+			raise TypeError("Argument must be either filename (string), a tuple, or a list.")
+	def get_tba_list(self):
+		return self.__tba_lst
+
+	def submit_addlst(self, data, columns, dbase, table):
+		#data argument = keys which hold the desired values
+		items = self.get_addlst()
+		for i in items:
+			data_fields = []
+			for i_2 in data: #take out of loop if speed becomes an issue 
+				data_fields.append[i[i_2]]
+			try:
+				self.dbase_add(data_fields, columns, dbase, table)
+			except:
+				print("{0} was not added to the database.".format(i["Product Name"]))
+			else:
+				print("{0} was added to table \"{1}\" in databse \"{2}\" ".format(i["Product Name"], table, dbase))
+	def submit_tbalst(self, data, columns, dbase, table):
+		#data argument = keys which hold the desired values
+		items = self.get_tba_list()
+		for i in items:
+			data_fields = []
+			for i_2 in data: #take out of loop if speed becomes an issue 
+				data_fields.append(i[i_2])
+			try:
+				self.dbase_add(data_fields, columns, dbase, table)
+			except:
+				print("{0} was not added to the database.".format(i["Product Name"]))
+			else:
+				print("{0} was added to table \"{1}\" in databse \"{2}\" ".format(i["Product Name"], table, dbase))
+
+
+
 
 	#need add_to_cat_single and add_to_cat_batch
+
 	def add_prod_cat_def(self, target_cat, attrs, image_folder="C:\\Users\\Owner\\Desktop\\I\\"):
 		#adds a single product to a single category (id)
 		def_image = "C:\\Users\\Owner\\Desktop\\I\\Card Backs & Logos\\no-image.jpg"
@@ -377,15 +427,39 @@ class Cat_product_add(Cat_session):
 		final_url = self.session.current_url
 		product_id = fn_grab(final_url)
 		attrs["Product Id"] = product_id
+		self.__add_list.append(attrs) #adds attrs to __add_list
 		entry_maker([attrs["Product Name"]]) 
 		dbase_info = ''
 		#creates a log entry for the product (ideally this should happen in bulk after all items have been added)
 		print(attrs)#only for testing
 		return attrs
-	def add_to_pos(self, host = '192.168.5.90'):
-		pass
+	def dbase_q_form(self, x):
+		#used to prepare values before they are entered into a sql database
+		data = x
 
+		data = data.replace('"', '\\"')
+		data = data.replace("'", "\\'")
+		return data
 
+	def dbase_add(self, data, columns, dbase, table):
+		self.dbObject.cust_com("Use {0};".format(dbase))
+		#data = [re.sub('"', '\"', str(i)) for i in data]
+		#data = [re.sub("'", '\'', str(i)) for i in data]
+		row_values = '('
+		for i in range(0, len(data)):
+			if i == len(data) - 1:
+				row_values += "\"" + self.dbase_q_form(str(data[i])) + "\"" + ')'
+			else:
+				row_values += "\"" + self.dbase_q_form(str(data[i])) + "\"" + ', '
+		column_values = '('
+		for i in range(0, len(columns)):
+			if i == len(columns) - 1:
+				column_values += str(columns[i]) + ')'
+			else:
+				column_values += str(columns[i]) + ', '
+		full_com = "INSERT into {0} {1} VALUES {2}".format(table, column_values, row_values)
+		self.dbObject.cust_com(full_com)
+		return full_com
 
 	def add_prod_cat_batch(self, fname, log = 0):
 		results = []
@@ -566,7 +640,22 @@ def descriptor_get(x):
 		d[desc_rows[i].find('th').text] = desc_rows[i].find('th').find_next('td').text
 	return d
 
-
+def date_form():
+    #returns the current date in the YYYY-MM-DD HH:MM:SS required by the datetime data type in mysql
+    full_dt = time.localtime()
+    year = str(full_dt[0])
+    month = leading_zero(full_dt[1],2)
+    day = leading_zero(full_dt[2], 2)
+    hour = leading_zero(full_dt[3],2)
+    minutes = leading_zero(full_dt[4], 2)
+    seconds = leading_zero(full_dt[5],2)
+    date_time = "{0}-{1}-{2} {3}:{4}:{5}".format(year, month, day, hour, minutes, seconds)
+    return date_time
+def leading_zero(x, length):
+    if len(str(x)) < length:
+        return "0" + str(x)
+    else:
+        return str(x)
 
 
 
@@ -584,6 +673,24 @@ def j_script(x,target, atr_val):
 			}}'''
 			
 		
-def add(x):
+def add_preoders(x):
 	test_add.add_prod_cat_batch(x)
+	items = test_add.get_addlst()
+	columns = ['product_name', 'product_id', 'sku', 'manufacturer', 'category_id', 'date_added']
+
+	for i in items:
+		if i["Product Id"].isdigit():
+			info = [i["Product Name"], i["Product Id"], i.get('Manufacturer SKU', ''), i.get("Manufacturer", ''), i.get("Category", ''), date_form()]
+			try:
+				test_add.dbase_add(info, columns, 'preorders','adds' )
+			except:
+				print("Failed to add {0}".format(i["Product Name"]))
 	return "Complete"
+def test_add_f():
+	test_add.set_tba_list('commaitems.csv')
+	test1 = test_add.get_tba_list()
+	for i in test1:
+		i["Dtime"] = date_form()
+	headers = test_add.dbObject.retr_columns('adds')
+	test_add.submit_tbalst(["Product Name", "Product Id", "Manufacturer SKU", "Manufacturer", "Category", "Dtime"], headers, 'preorders', 'adds')
+test_add_f()

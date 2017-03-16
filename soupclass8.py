@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup as bs
 import requests, lxml
 import unicodedata
 from PIL import Image
-import subprocess, os, csv, re, time
+import subprocess, os, csv, re, time, codecs
 import sys
 from os.path import join
 from selenium import webdriver
@@ -10,6 +10,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+
 
 '''VERSION NOTES:
 2/17/2016
@@ -101,7 +102,13 @@ class S_base(object):
 
 
 
-            
+    def soupmaker_bot(self):
+        headers = {'User-Agent':'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'}
+        html = requests.get(self.url, headers=headers)
+        html = html.content
+        bsObject = bs(html, 'lxml')
+        return bsObject
+
 
     def stealth_smaker(self):
         headers = {'User-Agent': 'Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405'}
@@ -169,6 +176,33 @@ class Sel_session(object):
         return self.driver
     def go_to(self,x):
         self.driver.get(x)
+    def js(self, x):
+        return self.driver.execute_script(x)
+    def close(self):
+        return self.driver.quit()
+    def is_enabled(self, prod_id):
+        #checks to see if the element is DISABLED
+        result = self.js("return 'disabled' in document.getElementById(\'{0}\').attributes".format(prod_id))
+        if result:
+            #if disabled is listed among the element's attributes returns False
+            return False
+        else:
+            return True
+    def w_load(self, T_O = 30):
+        #waits for page to finish loading
+        count = 0
+        while True:
+            if self.driver.execute_script('return document.readyState') != "complete" and count <= T_O:
+                count += 1
+                time.sleep(1)
+            elif count > T_O:
+                break #should probably do something else
+
+            else:
+                break
+
+
+
 
 
 
@@ -340,6 +374,8 @@ class S_format(object):
         x = self.s
         if attrs != 0:
             x = re.sub('<a','', x)#strips the tag from the string, helps in certain situations where the location of the link changes in between elements
+        elif type(attrs) == str:
+            x = re.sub(attrs, '', x)
         ln_s = x.split(default)
         for i in range(0, len(ln_s)):
             if ln_s[i] == n or ln_s[i] == ' %s' % (n):
@@ -355,7 +391,10 @@ class S_format(object):
         d = self.s
         n_l = []
         if c == 0:
-            return d.values()
+            return list(d.values())
+        elif c==1:
+            criteria = list(d.keys())
+            default = df
         else:
             criteria = c
             default = df
@@ -460,6 +499,22 @@ class S_table(object):
                     return item
             print("Could not find parent with the target tag %s" % (t_tag))
             return False
+
+    def table_find_str(self, x= '', t_tag = 'table', limit=40):
+        #improved version, uses string to find element
+            n = 0
+            item = self.table.find(string=re.compile(x))
+            if item == None:
+                return "Could not find instance of \" {} \"".format(x)
+            while item.name != t_tag and n != limit:
+                item = self.p_find(item) 
+                n += 1
+                if item.name == t_tag:
+                    print("Found target parent.")
+                    return item
+            print("Could not find parent with the target tag %s" % (t_tag))
+            return False
+
     def p_find(self,x):
         x = x.parent
         return x
@@ -467,12 +522,33 @@ class S_table(object):
     def c_find(self, x):
         c_list = [i for i in x.children]#list of the element's children
         return c_list
+
+
+
+    def v_csv(self, x, output="table.csv"):
+        table = self.table_find(self.table.find(string=re.compile(x)))
+        results = []
+        if table:
+            rows = table.find_all('tr')
+
+        for i in range(0, len(rows)):
+            cells_r = rows[i].find_all('td')
+            cells = [con_text_s(cells_r[i]) for i in range(0, len(cells_r))]
+            results.append(cells)
+        w_csv(results, output)
+        return results
+
+
     
 
 class C_sort(object):#for processing CSVs
     def __init__(self, fname, other = 0):
         self.fname = fname
-        self.contents = r_csv(self.fname)
+        try:
+            self.contents = r_csv(self.fname)
+        except UnicodeDecodeError as UDE:
+            self.contents = r_csv_2(self.fname, mode = 'rb', encoding='ISO-8859-1')
+            print("Encountered Unicode Decode Error")
         self.other = other#will be used later for different file formats
     #def contents(self):
         #return r_csv(self.fname)
@@ -837,7 +913,15 @@ def dupe_erase(x):
 
 def r_csv(x,mode='rt'):
     l = []
-    csv_in = open(x, mode, encoding = 'utf-8', errors= 'ignore')
+    csv_in = open(x, mode, encoding = 'utf-8')
+    myreader = csv.reader(csv_in)
+    for row in myreader:
+        l.append(row)
+    csv_in.close()
+    return l
+def r_csv_2(x,mode='rt', encoding = 'utf-8'):
+    l = []
+    csv_in = codecs.open(x, mode, encoding)
     myreader = csv.reader(csv_in)
     for row in myreader:
         l.append(row)
@@ -922,6 +1006,17 @@ def w_csv(x,output='FCfile.csv'):#accepts lists of other lists, spits out CSV fi
     mywriter.writerows(x)
     csv_out.close()
     return
+def w_csv_2(x,output='FCfile.csv'):#accepts lists of other lists, spits out CSV file
+    csv_out = open(output, 'w', newline='', encoding='ISO-8859-1')
+    mywriter = csv.writer(csv_out)
+    try:
+        print("This is x: %s" % (x))
+    except UnicodeEncodeError as UE:
+        print("Cannot print to console due to Unicode Error")
+
+    mywriter.writerows(x)
+    csv_out.close()
+    return
 
 def space_norm(x):
     l = x
@@ -975,6 +1070,74 @@ def none_remover(x):#filters None elements out of lists
     return new
 
 
+def con_text(x):
+    #for use with Beautiful Soup objects that have the text attribute
+    #replaces Nones with "Not available"
+    if type(x) == tuple:
+        new = list(x)
+    elif type(x) == list:
+        new = x
+    else:
+        return "Argument must be either tuple or list"
+    for i in range(0, len(new)):
+        try:
+            new[i] = new[i].text
+        except AttributeError as AE:
+            if type(new[i]) == str:
+                new[i] = new[i]
+            else:
+                new[i] = "Not available"
+    return list(new)
+
+def con_text_s(x):
+    #for use with a single Beautiful Soup object that has the text attribute
+    try:
+        x = re.sub('\n', '', x.text)
+    except AttributeError as AE:
+        if type(x) == str:
+            return x
+        else:
+            return "Not Available"
+    return x
+
+def dictionarify(x):
+    #should produce list of dictionaries from a csv, with the column headers as the keys
+    item = C_sort(x)
+    items = item.contents
+    crit = item.contents[0]
+    results = []
+    for i in range(1, len(items)):
+        d = dict.fromkeys(crit, 0)
+        for i_2 in range(0, len(items[i])):
+            d[crit[i_2]] = items[i][i_2]
+        results.append(d)
+    return results
+def date_form():
+    #returns the current date in the YYYY-MM-DD HH:MM:SS required by the datetime data type in mysql
+    full_dt = time.localtime()
+    year = str(full_dt[0])
+    month = leading_zero(full_dt[1],2)
+    day = leading_zero(full_dt[2], 2)
+    hour = leading_zero(full_dt[3],2)
+    minutes = leading_zero(full_dt[4], 2)
+    seconds = leading_zero(full_dt[5],2)
+    date_time = "{0}-{1}-{2} {3}:{4}:{5}".format(year, month, day, hour, minutes, seconds)
+    return date_time
+def leading_zero(x, length):
+    if len(str(x)) < length:
+        return "0" + str(x)
+    else:
+        return str(x)
+def proper_cap(x, acros = []):
+    if type(acros) != list or type(acros) != tuple:
+        raise TypeError("Acronym argument must be list")
+    #x is a string
+    x = str(x)
+    contents = x.split(' ')
+    for i in contents:
+        if i not in acros:
+            i = i.title()
+    return ' '.join(contents)
 
 
 
