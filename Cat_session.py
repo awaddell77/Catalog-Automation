@@ -6,6 +6,8 @@ import sys, re
 import time
 from log import entry_maker
 from dbaseObject import *
+from Imprt_csv import *
+
 
 text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
 class Cat_session(object):#parent class for this pseudo-API
@@ -19,6 +21,11 @@ class Cat_session(object):#parent class for this pseudo-API
 		#in the future allow the user to select which browser to use (would need to make this a child of a parent that did that)
 		#self.driver = webdriver.PhantomJS()
 		self.args = args
+		self.__del_items = []
+	def get_del_items(self):
+		return self.__del_items
+	def set_del_items(self, x):
+		self.__del_items = x
 	def main(self):
 		terminate = ['Log off','Logout', 'Exit']
 		self.session_start()
@@ -36,6 +43,8 @@ class Cat_session(object):#parent class for this pseudo-API
 		'''if 'Search' in args:
 			x = args.split('')
 			return self.prod_s(x[1])'''
+	def url(self):
+		return self.driver.current_url
 
 
 	def start(self):#login method
@@ -197,43 +206,43 @@ class Cat_session(object):#parent class for this pseudo-API
 
 
 
-	def descriptor_get(self, x):
-		d_info = {}
-		#retrieves the descriptors and their current values for a single product given its url or its product number
-		try:
-			int(x)
-		except ValueError as VE:
-			#if the argument is the full url (sans the '/edit' )
-			url = x + '/edit'
-			self.prod_go_to(url)
+	def descriptor_get(self, p_id=''):
+		#returns the every descriptor on the product page as a dictionary
+		#takes beautifulsoup object
+		d = {}
+		if p_id == '':
+			d["Product Id"] = fn_grab(str(self.driver.current_url))
 		else:
-			url = 'https://catalog.crystalcommerce.com/products/' + str(x) + '/edit'
-			self.prod_go_to(url)
+			d["Product Id"] = p_id
+		bsObject = self.source()
+		pi_page = x.find('div', {'class':'product'})
+		#default descriptors
+		d["Product Name"] = pi_page.find('h2', {'class':'product_name'}).text
+		d["Product Type"] = pi_page.find('h4', {'class': 'product_type_name'}).a.text
+		#finding the image
+		image_col = bsObject.find('div', {'class':'span4'})
+		image_rows = image_col.find_all('li')
+		image_link_element = image_rows[0].find('a',{'class':'thumbnail'})
+		image_link = 'https:' + S_format(str(image_link_element)).linkf('href=').split('?')[0]
+		d["Product Image Link"] = image_link
+		d["Product Image"] = fn_grab(image_link) 
+		table = pi_page.find('table')
+		rows = table.find_all('tr')
+		for i in range(0, len(rows)):
+			d[rows[i].find('th').text] = rows[i].find('th').find_next('td').text
+		d["Category Id"] = fn_grab(d.get("Category", "N/A"))
+		#unique descriptors (i.e. the descriptors of the product type)
+		desc_table = pi_page.find('table', {'id':'product_descriptors'}).tbody
+		desc_rows = desc_table.find_all('tr')
+		for i in range(0, len(desc_rows)):
+			d[desc_rows[i].find('th').text] = desc_rows[i].find('th').find_next('td').text
+		return d
 
-		elements = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')")
-		d_element = "document.getElementsByClassName('control-group string optional product_product_descriptors_value')"
-		d_num = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[0].children.length")
-		for i in range(0, int(d_num) - 1):
-			name = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[%s].children[0].innerHTML;" % str(i))
-			d_info[name] = driver.self.execute_script("return document.getElementsByClassName('control-group string optional product_product_descriptors_value')[%s].children[1].value;" % str(i))
-		return d_info
 	def quit(self):
 		#quits the driver
 		self.driver.quit()
-
-
-
-
-
-	def descriptor_edit(self, x):
-		pass
-		
-
-
-
-
-
-
+	def refresh(self):
+		self.driver.refresh()
 
 
 	def b_grab(self, t_class, attribute, value): 
@@ -314,7 +323,10 @@ class Cat_product_add(Cat_session):
 		super().__init__()
 		self.session = self.driver #didn't want to find and replace all the "session" references in the class
 		self.__add_list = []
+		self.__fail_lst = []
+		#tba_lst and tba_fail_lst are for database adds
 		self.__tba_lst = []
+		self.__tba_fail_lst =[]
 	def get_addlst(self):
 		return self.__add_list
 	def reset_addlst(self):
@@ -327,8 +339,21 @@ class Cat_product_add(Cat_session):
 			self.__tba_lst = x
 		else:
 			raise TypeError("Argument must be either filename (string), a tuple, or a list.")
+	def get_tba_fail_lst(self):
+		return self.__tba_fail_lst
+	def set_tba_fail_lst(self, x):
+		self.__tba_fail_lst = x
 	def get_tba_list(self):
 		return self.__tba_lst
+	def get_fail_list(self):
+		return self.__fail_lst
+	def set_fail_list(self, x):
+		if type(x) == str and '.' in x:
+			self.__fail_lst = dictionarify(x)
+		elif type(x) == lst or type(x) == tuple:
+			self.__fail_lst = x
+		else:
+			raise TypeError("Argument must be either filename (string), a tuple, or a list.")
 
 	def submit_addlst(self, data, columns, dbase, table):
 		#data argument = keys which hold the desired values
@@ -353,14 +378,11 @@ class Cat_product_add(Cat_session):
 			try:
 				self.dbase_add(data_fields, columns, dbase, table)
 			except:
+				self.__tba_fail_lst.append(i)
 				print("{0} was not added to the database.".format(i["Product Name"]))
+
 			else:
 				print("{0} was added to table \"{1}\" in databse \"{2}\" ".format(i["Product Name"], table, dbase))
-
-
-
-
-	#need add_to_cat_single and add_to_cat_batch
 
 	def add_prod_cat_def(self, target_cat, attrs, image_folder="C:\\Users\\Owner\\Desktop\\I\\"):
 		#adds a single product to a single category (id)
@@ -409,10 +431,6 @@ class Cat_product_add(Cat_session):
 				attrs['Photo Present'] = 0
 			else:
 				attrs['Photo Present'] = 1
-		
-
-
-
 		self.session.execute_script(
 			'''
 			var items = document.getElementsByTagName('*');
@@ -477,10 +495,6 @@ class Cat_product_add(Cat_session):
 			print('Product Name or Category ID were not found in one or more of the items')
 			return pcheck_list
 		#proceeds to create the items
-
-
-
-
 		for i in range(0, len(items)):
 			try:
 				confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
@@ -492,6 +506,7 @@ class Cat_product_add(Cat_session):
 
 			else:
 				if confirm['Product Id'] == "products":
+					self.__fail_lst.append(items[i])
 					failure_list.append(list(S_format(items[i]).d_sort()))
 				else:
 					results.append(list(confirm.values()))
@@ -564,7 +579,7 @@ class Cat_product_add(Cat_session):
 
 
 
-		#clicks the "New Product" button
+
 test_d = {"Product Name":'  Captain America - 1', "MSRP":'5.99', 'Barcode/UPC': '1337', 'Manufacturer SKU':'TEST 01', 'Category': 22054}
 
 
@@ -588,14 +603,13 @@ def dictionarify(x):
 #test_inst.start()
 #time.sleep(5)
 #test_inst.delete_product_single(6317013)
-test_add = Cat_product_add()
-test_add.start()
 #time.sleep(2)
 #test_add.add_prod_cat_def(21333, test_d)
 #test_add.add_prod_cat_batch('test_csv.csv')
 
-
-
+'''test_add = Cat_product_add()
+test_add.start()
+'''
 
 if len(sys.argv) > 1:
 	if sys.argv[1] == '-t':
@@ -673,9 +687,11 @@ def j_script(x,target, atr_val):
 			}}'''
 			
 		
-def add_preoders(x):
-	test_add.add_prod_cat_batch(x)
-	items = test_add.get_addlst()
+def add_preorders(x):
+	cat_inst = Cat_product_add()
+	cat_inst.start()
+	cat_inst.add_prod_cat_batch(x)
+	items = cat_inst.get_addlst()
 	columns = ['product_name', 'product_id', 'sku', 'manufacturer', 'category_id', 'date_added']
 
 	for i in items:
@@ -684,8 +700,14 @@ def add_preoders(x):
 			try:
 				test_add.dbase_add(info, columns, 'preorders','adds' )
 			except:
+				
 				print("Failed to add {0}".format(i["Product Name"]))
 	return "Complete"
+def add_items(x):
+	cat_inst = Cat_product_add()
+	cat_inst.start()
+	cat_inst.add_prod_cat_batch(x)
+
 def test_add_f():
 	test_add.set_tba_list('commaitems.csv')
 	test1 = test_add.get_tba_list()
@@ -693,4 +715,4 @@ def test_add_f():
 		i["Dtime"] = date_form()
 	headers = test_add.dbObject.retr_columns('adds')
 	test_add.submit_tbalst(["Product Name", "Product Id", "Manufacturer SKU", "Manufacturer", "Category", "Dtime"], headers, 'preorders', 'adds')
-test_add_f()
+#test_add_f()

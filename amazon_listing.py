@@ -1,12 +1,18 @@
 from Cat_session import *
 import copy, random
 main_csv = ["item_type", "item_sku", "external_product_id", "external_product_id_type", "item_name", "brand_name", "manufacturer", "mfg_minimum", "mtg_minimum_unit_of_measure", "product_description", "main_image_url", "target_audience_keywords", "bullet_point1",	"bullet_point2", "bullet_point3", "generic_keywords"]
-def_d = {"item_type":"collectible-single-trading-cards", "item_sku":'', "external_product_id":'', "external_product_id_type":"EAN",
+def_d1 = {"item_type":"collectible-single-trading-cards", "item_sku":'', "external_product_id":'', "external_product_id_type":"EAN",
  "item_name":'', "brand_name":"Magic the Gathering", "manufacturer":"Wizards of the Coast", "mfg_minimum":'12', "mtg_minimum_unit_of_measure":'',
   "product_description":'', "main_image_url":'', "target_audience_keywords":'teenage boys',
   "bullet_point1":'',	"bullet_point2":'', "bullet_point3":'', "generic_keywords":''}
+ def_d = {"item_type":"collectible-single-trading-cards", "Product Id":'', "external_product_id":'', "external_product_id_type":"EAN",
+ "item_name":'', "brand_name":"Magic the Gathering", "Manufacturer":"Wizards of the Coast", "Ages":'12', "mtg_minimum_unit_of_measure":'',
+  "Description":'', "Product Image":'', "Keywords":'teenage boys',
+  "bullet_point1":'',	"bullet_point2":'', "bullet_point3":'', "generic_keywords":''}
 
-browser = test_add
+browser = Cat_session()
+browser.start()
+time.sleep(3)
 #this is the main browser object that will be used to pull picture links from the catalog
 class Main(object):
 	def __init__(self, fname, barcodes, **kwargs):
@@ -30,13 +36,13 @@ class Main(object):
 			image_link = image_get(bsObject)
 			price = "'" + str(random.randint(1,301) / 100)
 			new_d['MSRP'] = price
-			new_d['item_sku'] = self.f_contents[i]['Product Id']
+			new_d['Product Id'] = self.f_contents[i]['Product Id']
 			#new_d['item_name'] = self.f_contents[i][name_d] + ' - ' + self.f_contents[i].get('Finish', 'Regular')
-			new_d['main_image_url'] = image_link
+			new_d['Product Image'] = image_link
 			#new_d['bullet_point1'] = '1x ' + self.f_contents[i][name_d]
 			#new_d['bullet_point2'] = 'This card has a ' + self.f_contents[i].get('Finish', 'Regular') + ' finish'
 			#new_d['bullet_point3'] = 'Rarity: ' + self.f_contents[i]['Rarity']
-			new_d['product_description'] = 'A single individual card from the' + self.params.get('TCG', def_tcg) + ' trading and collectible card game (TCG/CCG). This is of the ' + self.f_contents[i]['Rarity'] + ' rarity.'
+			new_d['Description'] = 'A single individual card from the' + self.params.get('TCG', def_tcg) + ' trading and collectible card game (TCG/CCG). This is of the ' + self.f_contents[i]['Rarity'] + ' rarity.'
 			results.append(new_d)
 		#results = self.barcode_grab(results)
 		new_csv(results)
