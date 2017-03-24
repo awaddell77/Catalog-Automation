@@ -56,6 +56,8 @@ class Cat_session(object):#parent class for this pseudo-API
 		element3 = self.driver.find_element_by_name('commit')# sign in button
 		element3.click()
 		self.target()
+		while self.driver.current_url == 'https://catalog.crystalcommerce.com/users/login':
+			time.sleep(.5)
 		return self.driver
 	def target(self):
 		element = self.driver.find_element_by_link_text('Catalog')
@@ -327,6 +329,8 @@ class Cat_product_add(Cat_session):
 		#tba_lst and tba_fail_lst are for database adds
 		self.__tba_lst = []
 		self.__tba_fail_lst =[]
+		self.__duplicates = []
+		self.__dupe_check = False
 	def get_addlst(self):
 		return self.__add_list
 	def reset_addlst(self):
@@ -354,6 +358,16 @@ class Cat_product_add(Cat_session):
 			self.__fail_lst = x
 		else:
 			raise TypeError("Argument must be either filename (string), a tuple, or a list.")
+	def get_duplicates(self):
+		return self.__duplicates
+	def set_duplicates(self, x):
+		self.__duplicates = x
+	def get_dupe_check(self):
+		return self.__dupe_check
+	def set_dupe_check(self, x):
+		self.__dupe_check = x
+
+
 
 	def submit_addlst(self, data, columns, dbase, table):
 		#data argument = keys which hold the desired values
@@ -478,6 +492,15 @@ class Cat_product_add(Cat_session):
 		full_com = "INSERT into {0} {1} VALUES {2}".format(table, column_values, row_values)
 		self.dbObject.cust_com(full_com)
 		return full_com
+	def dbase_dupe_check(self, dbase, table, column, x):
+		self.dbaseObject.cust_com("Use {0};".format(dbase))
+
+		resp = self.dbaseObject.query("SELECT {1} FROM {0} WHERE {1} = \"{2}\"".format(table, column, self.dbase_q_form(str(x))))
+		if resp[0] == x:
+			return True
+		else:
+			return False
+
 
 	def add_prod_cat_batch(self, fname, log = 0):
 		results = []
@@ -494,6 +517,17 @@ class Cat_product_add(Cat_session):
 		if pcheck_list != []:
 			print('Product Name or Category ID were not found in one or more of the items')
 			return pcheck_list
+		#checks for duplicates if __dupe_check is True
+		if self.__dupe_check:
+			for i in items:
+				if self.dbase_dupe_check('preorders', 'adds', 'product_name', i["Product Name"]):
+					product_id = self.dbaseObject.query("SELECT {1} FROM {0} WHERE {3} = \"{2}\"".format('preorders', 'adds', 'product_id', self.dbase_q_form(str(i["Product Name"])), "product_name"))
+
+					print("\"{0}\" is a duplicate of Product #{1} in the catalog".format(i["Product Name"], product_id[0][0]))
+					self.__duplicates.append(i)
+		if self.__duplicates != []:
+			print("Duplicates detected.")
+			raise Duplicate_Detected("Duplicates detected. If you wish to proceed, please remove all the duplicate items or set the system to ignore duplicates")
 		#proceeds to create the items
 		for i in range(0, len(items)):
 			try:
@@ -624,6 +658,8 @@ else:
 
 class Crit_not_present(Exception):
 	pass
+class Duplicate_Detected(Exception):
+	pass
 
 
 
@@ -703,10 +739,14 @@ def add_preorders(x):
 				
 				print("Failed to add {0}".format(i["Product Name"]))
 	return "Complete"
-def add_items(x):
-	cat_inst = Cat_product_add()
+def add_items(x, session = ''):
+	if session != '':
+		cat_inst = session
+	else:
+		cat_inst = Cat_product_add()
 	cat_inst.start()
 	cat_inst.add_prod_cat_batch(x)
+	return cat_inst.get_addlst()
 
 def test_add_f():
 	test_add.set_tba_list('commaitems.csv')

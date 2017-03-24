@@ -17,6 +17,8 @@ class Asin_Add_Main(object):
 	def start(self):
 		self.browser = Sel_session("https://sellercentral.amazon.com/gp/homepage.html")
 		self.browser.start()
+	def url(self):
+		return self.browser.driver.current_url
 
 	def get_asins(self):
 		return self.asins

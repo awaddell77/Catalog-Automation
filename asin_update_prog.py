@@ -15,9 +15,20 @@ class Asin_update:
 		self.__id_create_queue = []
 		#for product Ids coupled with asins
 		self.__asin_id_lst = []
+		#used for start_up_all method
+		self.__amazon_online = False
 	def start_up_all(self):
 		self.cat_update_inst.start()
 		self.amazon_inst.start()
+		amazon_counter = time.time()
+		while not self.__amazon_online:
+			if self.amazon_inst.url() in ["https://sellercentral.amazon.com/gp/homepage.html?", "https://sellercentral.amazon.com/gp/homepage.html/ref=ag_home_logo_xx"]:
+				self.__amazon_online = True
+				break
+			elif (time.time() - amazon_counter) >= 30:
+				raise RuntimeError("You need to log in to the seller central account in the Amazon instance.")
+
+
 	def get_id_queue(self):
 		return self.__id_check_queue
 	def set_id_queue(self,x):
