@@ -11,10 +11,12 @@ class Cat_update(Cat_session):
 		if '.csv' in update_data:
 			self.item_lst = Imprt_csv(update_csv, req_crits)
 			self.item_lst.check_for_issues(req_not_empty)
+			self.dir_n = self.item_lst.dir_n
 		else:
 			self.item_lst = update_data
+			self.dir_n = ''
 
-		self.dir_n = self.item_lst.dir_n
+		
 	def update_data_check(self, fields=[]):
 		if "Product Id" not in fields:
 			fields.append("Product Id")

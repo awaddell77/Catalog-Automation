@@ -217,7 +217,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		else:
 			d["Product Id"] = p_id
 		bsObject = self.source()
-		pi_page = x.find('div', {'class':'product'})
+		pi_page = bsObject.find('div', {'class':'product'})
 		#default descriptors
 		d["Product Name"] = pi_page.find('h2', {'class':'product_name'}).text
 		d["Product Type"] = pi_page.find('h4', {'class': 'product_type_name'}).a.text
@@ -231,7 +231,9 @@ class Cat_session(object):#parent class for this pseudo-API
 		table = pi_page.find('table')
 		rows = table.find_all('tr')
 		for i in range(0, len(rows)):
-			d[rows[i].find('th').text] = rows[i].find('th').find_next('td').text
+			value = rows[i].find('th').find_next('td').text
+			value = value.replace('\n','')
+			d[rows[i].find('th').text] = value
 		d["Category Id"] = fn_grab(d.get("Category", "N/A"))
 		#unique descriptors (i.e. the descriptors of the product type)
 		desc_table = pi_page.find('table', {'id':'product_descriptors'}).tbody
@@ -521,7 +523,7 @@ class Cat_product_add(Cat_session):
 		if self.__dupe_check:
 			for i in items:
 				if self.dbase_dupe_check('preorders', 'adds', 'product_name', i["Product Name"]):
-					product_id = self.dbaseObject.query("SELECT {1} FROM {0} WHERE {3} = \"{2}\"".format('preorders', 'adds', 'product_id', self.dbase_q_form(str(i["Product Name"])), "product_name"))
+					product_id = self.dbaseObject.query("SELECT {1} FROM {0} WHERE {3} = \"{2}\"".format('adds', 'product_id', self.dbase_q_form(str(i["Product Name"])), "product_name"))
 
 					print("\"{0}\" is a duplicate of Product #{1} in the catalog".format(i["Product Name"], product_id[0][0]))
 					self.__duplicates.append(i)
@@ -722,9 +724,19 @@ def j_script(x,target, atr_val):
     			console.log("DID NOT FIND IT");
 			}}'''
 			
-		
-def add_preorders(x):
+
+def add_barcodes(bcodes):
+	x = Cat_product_add()
+	for i in bcodes:
+		info = [i, date_form()]
+		x.dbase_add(info, ["barcode", "date_added"], "asins", "barcodes")
+	print("Done")
+	x = ''
+
+
+def add_preorders(x, dupe_check = True):
 	cat_inst = Cat_product_add()
+	cat_inst.set_dupe_check = dupe_check
 	cat_inst.start()
 	cat_inst.add_prod_cat_batch(x)
 	items = cat_inst.get_addlst()
