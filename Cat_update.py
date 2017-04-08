@@ -66,6 +66,7 @@ class Cat_update(Cat_session):
 	    				var result = items[i] ;
 	    				result.click();
 	    		}}''')
+			self.load_check()
 		except:
 			return False
 		else:

@@ -5,12 +5,14 @@ class Asin_create(object):
 	def __init__(self, p_list='', dir_n ="C:\\Users\\Owner\\Desktop\\I\\", *args):
 		self.dir_n = dir_n
 		#self.p_list = conv_to_dict(p_list, self.dir_n)
-		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'asins', '192.168.5.90')
+		#self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'asins', '192.168.5.90')
 		self.p_list = []
 		self.args = args
 		self.browser = ''
-		self.header = r_csv_2(p_list, mode = 'rb', encoding = 'ISO-8859-1' )[0]
+		#self.header = r_csv_2(p_list, mode = 'rb', encoding = 'ISO-8859-1' )[0]
 		self.asins = []
+		self.__fail_lst = []
+
 	def get_p_lst(self):
 		return self.p_list
 	def set_p_lst(self, x):
@@ -50,6 +52,8 @@ class Asin_create(object):
 		time.sleep(1)
 		#SKU
 		self.browser.js("document.getElementById('item_sku').value = '{0}'".format(x["Product Id"]))
+		#quantity
+		self.browser.js("document.getElementById('quantity').value = '0'")
 		#condition
 		self.browser.js("document.getElementById('condition_type').value = 'collectible, like_new'")
 		#MSRP
@@ -88,7 +92,7 @@ class Asin_create(object):
 			print("CLICKED THE SUBMIT BUTTON!")
 			load_check_abort = 0
 			#has to wait for the page to transition to the seller central page
-			while load_check('sellercentral'):
+			while self.load_check('sellercentral'):
 				print("Waiting for sellercentral page")
 				load_check_abort += 1
 				time.sleep(1)
@@ -170,20 +174,20 @@ class Asin_create(object):
 		try:
 			ASIN = re.sub('\n', '', site.find('div', {'data-column':'asin'}).text).strip()
 		except TypeError as TE:
-			return [name, "No ASIN found"]
+			return [name, "None"]
 		except AttributeError as AE:
-			return [name, "No ASIN returned"]
+			return [name, "None"]
 		else:
 			return [name, ASIN]
 
 
 
-def load_check(start):
-	#checks to see if self.browser has switched to the sellercentral page after clicking on the save button on the item creation page
-	if self.browser.js('return document.readyState') != "complete" or start not in self.browser.driver.current_url:
-		return True
-	else:
-		return False
+	def load_check(self, start):
+		#checks to see if self.browser has switched to the sellercentral page after clicking on the save button on the item creation page
+		if self.browser.js('return document.readyState') != "complete" or start not in self.browser.driver.current_url:
+			return True
+		else:
+			return False
 def barcode_handling(x):
 	d = x 
 	d["Barcode"] = '[' + str(d["Barcode"])

@@ -88,6 +88,11 @@ class Db_mngmnt(object):
 		rows = self.cursor.fetchall()
 		self.last_resp = rows
 		return rows
+	def query_multi(self, x):
+		self.cursor.execute(x, multi=True)
+		rows = self.cursor.fetchall()
+		self.last_resp = rows
+		return rows
 	def __comm(self, command, query = 0):
 		#does not add response to last_resp data field
 		self.cursor.execute(x)

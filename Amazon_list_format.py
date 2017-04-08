@@ -11,6 +11,7 @@ class Amzn_lst_single:
 		self.__ages = '12'
 		self.__dir = "C:\\Users\\Owner\\Desktop\\I\\"
 		self.__d_opt = True
+		self.__keywords = 'teenage boys'
 		if not isinstance(self.__values, dict):
 			raise TypeError("Param must be dictionary.")
 	def __str__(self):
@@ -38,17 +39,23 @@ class Amzn_lst_single:
 		return self.__ages
 	def set_ages(self, x):
 		self.__ages = x
+	def get_keywords(self):
+		return self.__keywords
+	def set_keywords(self, x):
+		self.__keywords = x
 
 	def form(self):
 		#need to have special 'filter' that prevents promo cards from getting their category names added to their amazon listing names
 		if self.__values["Product Type"] == 'Yu-Gi-Oh Singles':
 			self.set_game('Yu-Gi-Oh')
-			self.set_man = 'yu-gi-oh'
+			self.set_man('yu-gi-oh')
+			self.set_keywords('teenage boys')
 			card = self.__ygo_form()
 			return card
 		elif self.__values["Product Type"] == "Magic Singles":
 			self.set_game('Magic: The Gathering (MTG)')
 			self.set_man("Wizards of the Coast")
+			self.set_keywords('teenage boys')
 			card = self.__mtg_form()
 			return card
 		else:
@@ -64,13 +71,14 @@ class Amzn_lst_single:
 			#if card_edition is empty
 			full_name = card_name + ' - ' + set_name
 		else:
-			full_name = card_name + ' - ' + set_name + ' - (' + card_edition + ' Edition)'
+			full_name = card_name + ' - ' + set_name + ' (' + card_edition + ' Edition)'
 		d["Product Name"] = full_name
 		d["Product Id"] = self.__values['Product Id']
 		d["MSRP"] = str(random.randint(1,301) / 100)
 		d["Manufacturer"] = self.get_man()
 		d["Ages"] = self.get_ages()
-		d["Barcode Type"] = 'upc'
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -103,7 +111,8 @@ class Amzn_lst_single:
 		d["MSRP"] = str(random.randint(1,301) / 100)
 		d["Manufacturer"] = self.get_man()
 		d["Ages"] = self.get_ages()
-		d["Barcode Type"] = 'upc'
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:

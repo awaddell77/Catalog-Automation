@@ -239,7 +239,8 @@ class Cat_session(object):#parent class for this pseudo-API
 		desc_table = pi_page.find('table', {'id':'product_descriptors'}).tbody
 		desc_rows = desc_table.find_all('tr')
 		for i in range(0, len(desc_rows)):
-			d[desc_rows[i].find('th').text] = desc_rows[i].find('th').find_next('td').text
+			val = desc_rows[i].find('th').find_next('td').text
+			d[desc_rows[i].find('th').text] = val.strip(' ')
 		return d
 
 	def quit(self):

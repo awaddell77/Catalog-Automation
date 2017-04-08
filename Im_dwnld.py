@@ -6,12 +6,14 @@ from os.path import join
 class Im_dwnld(object):
     def __init__(self, directory ='BATCH DOWNLOAD'):
         self.directory = directory
+        self.__overwrite = False
 
     def i_main(self, ext_file = 0):
         urls = ext_file
         self.d_create(self.directory)
         for i in range(0, len(urls)):
             print("Now Downloading %s (Item #%d of %d)" % (urls[i], i+1, len(urls)))
+
             self.d_img(urls[i],self.directory)
         return 'Downloaded %d files to %s' % (len(urls),self.directory)
 
@@ -76,3 +78,10 @@ class Im_dwnld(object):
         f.write(img.content)
         f.close()
         return img_n
+    def file_present(self, x):
+        #only checks current working directory
+        full_path = self.directory + '\\' + x
+        if os.path.exists(full_path):
+            return True
+        if not os.path.exists(full_path):
+            return False
