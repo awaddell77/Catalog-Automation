@@ -14,6 +14,7 @@ class Amzn_lst_single:
 		self.__keywords = 'teenage boys'
 		if not isinstance(self.__values, dict):
 			raise TypeError("Param must be dictionary.")
+		self.__cat_form = False
 	def __str__(self):
 		return self.__values
 	def get_dir(self):
@@ -43,7 +44,13 @@ class Amzn_lst_single:
 		return self.__keywords
 	def set_keywords(self, x):
 		self.__keywords = x
-
+	def get_cat_form(self):
+		return self.__cat_form
+	def set_cat_form(self, x):
+		if not isinstance(x, bool):
+			raise TypeError("Argument must be bool")
+		else:
+			self.__cat_form = x
 	def form(self):
 		#need to have special 'filter' that prevents promo cards from getting their category names added to their amazon listing names
 		if self.__values["Product Type"] == 'Yu-Gi-Oh Singles':
