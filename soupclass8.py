@@ -200,6 +200,8 @@ class Sel_session(object):
 
             else:
                 break
+    def clear_cookies(self):
+        self.driver.delete_all_cookies()
 
 
 

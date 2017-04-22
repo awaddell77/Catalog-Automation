@@ -105,6 +105,7 @@ class Cat_dbase(Db_mngmnt):
 		x["Product Image Link"] = "https://crystalcommerce-assets.s3.amazonaws.com/photos/" + str(x["Product Id"]) + '/' + str(x["Product Image"])
 		x["Product Type"] = x['product type']
 		x["Category Name"] = x['category_name']
+		x["Category"] = x['category_name']
 		#may need to create new dict that doesn't have all the improperly named keys in the future if size becomes an issue
 		return x
 	def asin_check(self, p_id):
@@ -134,7 +135,14 @@ class Cat_dbase(Db_mngmnt):
 		print("Found {0} new products".format(len(unique_items)))
 		return unique_items
 	def update_product(self, p_id, descr, value):
-		self.cust_com('UPDATE products SET {0} = {1} WHERE id = \"{2}\";'.format(descr, value, p_id))
+		print("Updating Product {0} with {1}".format(p_id, value))
+		self.cust_com('UPDATE products SET {0} = \"{1}\" WHERE id = \"{2}\";'.format(descr, value, p_id))
+	def child_cats(self, parent_cat):
+		res = self.query("SELECT id FROM categories WHERE ancestry = \"188/{0}\"".format(str(parent_cat)))
+		if not res:
+			res = self.tup_to_lst(res)
+			return res
+
 
 
 

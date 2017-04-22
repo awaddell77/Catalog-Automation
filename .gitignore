@@ -68,3 +68,15 @@ kwargs_test.py
 tcgplayer.py
 soupclass811.py
 test.py
+barcodes.txt
+listmod.py
+*.csv#
+amazon_auto_main.py
+amazon_auto.py
+asin_update_test.py
+bcode_dlt.py
+prog_bar.py
+csv_export.py
+role4initiative.py
+csv_export2.py
+export_csv3.py

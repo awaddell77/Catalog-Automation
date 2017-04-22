@@ -16,8 +16,8 @@ class Db_mngmnt(object):
 		self.last_resp = ''
 	
 	def reconnect(self):
-		self.cnx = mysql.connector.connect(user=self.user, password=self.password, host=self.host, database=self.database)
-		self.cursor = cnx.cursor(buffered = True)
+		self.con = mysql.connector.connect(user=self.user, password=self.password, host=self.host, database=self.database)
+		self.cursor = self.con.cursor(buffered = True)
 		#return cursor
 
 	def import_data(self, fname):

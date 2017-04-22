@@ -126,7 +126,7 @@ class Cat_update(Cat_session):
 		else:
 			return True
 	def go_to(self, x):
-		url = 'https://catalog.crystalcommerce.com/products/' + x + '/edit'
+		url = 'https://catalog.crystalcommerce.com/products/' + str(x) + '/edit'
 		self.session.get(url)
 		while self.load_check():
 			time.sleep(.1)

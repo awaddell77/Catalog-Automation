@@ -3,11 +3,17 @@ from Cat_session import *
 from Cat_update import *
 from amazon_new import *
 from Amazon_list_format import *
+from Cat_dbase import *
+import time
 
 class Asin_update:
 	def __init__(self, *args):
 		#database connection
 		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'asins', '192.168.5.90')
+		#catalog database connection
+		self.cat_obj = Cat_dbase()
+		#makes object return the product information dicts with the proper key names
+		self.cat_obj.set_proper_desc(True)
 		#catalog update instance
 		self.cat_update_inst = Cat_update()
 		#amazon connection
@@ -30,15 +36,15 @@ class Asin_update:
 		self.__keep_live_check = time.time()
 		self.asin_create_timer = 0
 	def start_up_all(self):
-		self.cat_update_inst.start()
+		#self.cat_update_inst.start()
 		self.amazon_inst.start()
-		amazon_counter = time.time()
+		'''amazon_counter = time.time()
 		while not self.__amazon_online:
 			if self.amazon_inst.url() in ["https://sellercentral.amazon.com/gp/homepage.html?", "https://sellercentral.amazon.com/gp/homepage.html/ref=ag_home_logo_xx"]:
 				self.__amazon_online = True
 				break
 			elif (time.time() - amazon_counter) >= 30:
-				raise RuntimeError("You need to log in to the seller central account in the Amazon instance.")
+				raise RuntimeError("You need to log in to the seller central account in the Amazon instance.")'''
 	def get_prod_info(self):
 		return self.__prod_info
 	def set_prod_info(self, x):
@@ -66,6 +72,18 @@ class Asin_update:
 		p_ids = self.dbObject.query("SELECT * FROM {0};".format(str(table_name)))
 		p_ids = [i[0] for i in p_idges]
 		self.set_id_queue(p_ids)
+	def get_ids_cat(self, cat_id, asin_filter = True):
+		#takes ids from catalog
+		#used for updating specific categories
+		#by default it only returns those products that don't have ASINs
+		if asin_filter:
+			p_ids = self.cat_obj.cat_need_asin(cat_id)
+			self.set_id_queue(p_ids)
+		else:
+			p_ids = self.cat_obj.get_category_contents(cat_id, True)
+			self.set_id_queue(p_ids)
+
+
 	def move_ids(self):
 		#assings value of id_queue to id_create_queue, then removes all of the product ids from id_to_check table on database
 		#deletes ids from database
@@ -130,24 +148,33 @@ class Asin_update:
 	def bcode_test(self, num):
 		#remove after testing
 		return self.__grab_barcodes(num)
+	def barcode_dump(self, num):
+		bcodes = self.__grab_barcodes(num)
+
 	def import_csv(self, x):
 		prod_ids = dictionarify(x)
 		return [i["Product Id"] for i in prod_ids]
 
-	def get_descriptions(self):
+	def get_descriptions(self, get_images = True):
+		self.set_prod_info([])
 		barcodes_lst = self.__grab_barcodes(len(self.__id_create_queue))
 		self.set_barcode_queue([i[0] for i in barcodes_lst])
 		bcodes = self.get_barcode_queue()
 		p_ids = self.get_id_create_queue()
 		for i in range(0, len(p_ids)):
-			self.cat_update_inst.prod_go_to(p_ids[i])
-			desc = Amzn_lst_single(self.cat_update_inst.descriptor_get()).form()
+			#self.cat_update_inst.prod_go_to(p_ids[i])
+			prod_info = self.cat_obj.get_product(p_ids[i])
+			desc = Amzn_lst_single(prod_info)
+			desc.set_d_opt(get_images)
+			desc = desc.form()
+			#desc = Amzn_lst_single(self.cat_update_inst.descriptor_get()).form()
 			desc["Barcode"] = bcodes[i]
 			self.__prod_info.append(desc)
 		return self.get_prod_info()
 
 	def create_asins(self):
-		#self.asin_create_timer = time.time()
+		self.__retr_lst = []
+		start = time.time()
 		count = 1
 		for i in self.__prod_info:
 			print("Attempting {0}. #{1} of {2}".format(i["Product Name"],count, len(self.__prod_info)))
@@ -182,7 +209,30 @@ class Asin_update:
 					count += 1
 		#duration = time.time() - self.asin_create_timer()
 		#print("Process took {0} seconds to complete.".format(duration))
+		end = time.time()
+		duration = end - start
 		print("{0} ASINs were created. Failed to create: {1}".format(len(self.__retr_lst), len(self.__fail_lst)))
+		print("ASIN creation process took {0} seconds".format(duration))
+	def asin_create_m_cats(self, cats):
+		p_ids = []
+		if not isinstance(cats, list):
+			raise TypeError("Param must be list")
+		for i in cats:
+			#gets every product id in the category that does not have an ASIN
+			self.get_ids_cat(str(i))
+			p_ids += self.get_id_queue()
+		self.set_id_create_queue(p_ids)
+		#creates the proper dicts for amazon submission
+		self.get_descriptions()
+		#creates the asins
+		self.create_asins()
+		self.amazon_inst.go_to_search_page()
+
+		#retrieves and then updates the ASIN descriptors in the catalog
+		#also deletes the barcodes that were used from the barcode table in the database
+		self.get_asins()
+
+
 	def m_process(self):
 		#creates asins then retrieves them
 		print("Retrieving product information from catalog.")
@@ -190,12 +240,19 @@ class Asin_update:
 		print("Creating ASINs")
 		self.create_asins()
 		print("Obtaining ASINs from Amazon")
+		self.amazon_inst.go_to_search_page()
 		self.get_asins()
 		print("Fetched ASINs. Now updating product ASINs in catalog")
 		self.update_asins()
 		print("Updated product ASINs in catalog. Now deleting used barcodes from database.")
 		self.delete_bcodes()
 		self.set_prod_info([])
+	def c_g_asins(self):
+		#creates and then updates ASINs
+		self.create_asins()
+		self.amazon_inst.go_to_search_page()
+		self.get_asins()
+		self.update_asins()
 
 	def switch_bcode_type(self, x):
 		if x == 'ean':
@@ -204,26 +261,83 @@ class Asin_update:
 			return 'ean'
 	def delete_bcodes(self):
 		succ_lst = self.get_retr_lst()
+		print("Deleting barcodes")
+		self.dbObject.reconnect()#not the best solution, definitely need to have a try/except block for lost connections instead
 		for i in succ_lst:
 			self.dbObject.cust_com("DELETE from barcodes WHERE barcode = \"{0}\";".format(i["Barcode"]))
-	def get_asins(self):
+		self.set_barcode_queue([])
+	def delete_bcodes_n(self, n):
+		print("Deleting barcodes")
+		barcodes = self.dbObject.query("SELECT * from barcodes LIMIT {0};".format(n))
+		succ_lst = [i[0] for i in barcodes]
+		self.dbObject.reconnect()#not the best solution, definitely need to have a try/except block for lost connections instead
+		for i in succ_lst:
+			print("DELETING {0}".format(str(i)))
+			self.dbObject.cust_com("DELETE from barcodes WHERE barcode = \"{0}\";".format(i))
+
+	def get_asins(self, update = True):
+		#if update argument is true then the method automatically updates the products in the catalog with their new ASINs
+		self.__asin_id_lst = []
+		self.amazon_inst.go_to_search_page()
 		p_ids = self.get_retr_lst()
 		for i in p_ids:
 			self.__asin_id_lst.append(self.amazon_inst.grab_asin(i["Product Id"]))
-	def update_asins(self):
-		for i in self.__asin_id_lst:
-			self.cat_update_inst.go_to(i[0])
-			if i[1] != "None":
-				#not pythonic but the only way to ensure it doesn't add string containing "None"
-				#also ASINs aren't always alphanumeric and can contain only letters
-				self.cat_update_inst.update_descriptor_all('Asin', i[1])
-				self.cat_update_inst.click_update()
-				self.cat_update_inst.load_check()
+		if update:
+			self.update_asins()
+			self.delete_bcodes()
+	def update_asins(self, sql = True):
+		issues = []
+		for i in range(0, len(self.__asin_id_lst)):
+			#not pythonic but the only way to ensure it doesn't add string containing "None"
+			#also ASINs aren't always alphanumeric and can contain only letters
+			
+			if self.__asin_id_lst[i][1] != "None":
+				if sql:
+					try:
+						self.cat_obj.update_product(str(self.__asin_id_lst[i][0]), 'asin', self.asin_id_lst[i][1])
+					except KeyboardInterrupt as KE:
+						break
+					except:
+						print("General error occured")
+						print(sys.exc_info()[:])
+						issues.append(str(i[0]))
+
+
+				else:
+					self.cat_update_inst.go_to(i[0])
+					self.cat_update_inst.update_descriptor_all('Asin', i[1])
+					self.cat_update_inst.click_update()
+					self.cat_update_inst.load_check()
+		if not issues:
+			print("Ran into issues updating the following products")
+			return issues
+	def retr_asins_for_cat(self, cat_id, asin_filter = True):
+		#retrieves product ids from catalog, puts them into a list of dictionaries and then assigns that list to retr_lst 
+		self.get_ids_cat(cat_id, asin_filter)
+		p_ids = self.get_id_queue()
+		results = [{"Product Id": str(i)} for i in p_ids]
+
+		self.set_retr_lst(results)
+
+
 	def keep_live(self, interval = 30):
 		diff = time.time() - self.__keep_live_check
 		if diff > interval:
 			self.amazon_inst.browser.go_to("https://sellercentral.amazon.com/gp/homepage.html")
 			self.__keep_live_check = time.time()
+	def wait_stay_live(self, interval = 30):
+		while True:
+			
+			try:
+				time.sleep(30)
+
+			except KeyboardInterrupt as KE:
+				break
+			else:
+				self.amazon_inst.browser.go_to("https://sellercentral.amazon.com/gp/homepage.html")
+
+
+
 
 
 

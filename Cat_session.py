@@ -16,12 +16,14 @@ class Cat_session(object):#parent class for this pseudo-API
 		#self.password = getpass.getpass('Password:')
 		self.username = text_cred[0]
 		self.password = text_cred[1]
-		self.driver = webdriver.Firefox()
+		self.driver = ''
 		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'preorders', '192.168.5.90')
 		#in the future allow the user to select which browser to use (would need to make this a child of a parent that did that)
 		#self.driver = webdriver.PhantomJS()
 		self.args = args
 		self.__del_items = []
+	def start_browser(self):
+		self.driver = webdriver.Firefox()
 	def get_del_items(self):
 		return self.__del_items
 	def set_del_items(self, x):
@@ -112,8 +114,9 @@ class Cat_session(object):#parent class for this pseudo-API
 	def push_asins(self,x):
 		self.cat_goto(x)
 		try:
-			checkbox = self.driver.find_element_by_id('all_products')
-			checkbox.click()
+			self.driver.execute_script("document.getElementById('all_products').click();")
+			while self.driver.execute_script("return document.getElementById('all_products_in_category').style.display") == "none":
+				time.sleep(.5)
 			self.driver.execute_script('document.getElementById("product_variation_category_id").click()')
 		except:
 			print("Something went wrong.")
@@ -326,7 +329,7 @@ class S_results(object):#should probably be made a child of Cat_session once it 
 class Cat_product_add(Cat_session):
 	def __init__(self):
 		super().__init__()
-		self.session = self.driver #didn't want to find and replace all the "session" references in the class
+		#self.session = self.driver #didn't want to find and replace all the "session" references in the class
 		self.__add_list = []
 		self.__fail_lst = []
 		#tba_lst and tba_fail_lst are for database adds
@@ -406,8 +409,8 @@ class Cat_product_add(Cat_session):
 		def_image = "C:\\Users\\Owner\\Desktop\\I\\Card Backs & Logos\\no-image.jpg"
 		assert type(target_cat) == int, "{0} must be int".format(target_cat)
 		assert type(attrs) == dict, "{0} must be dict".format(attrs)
-		self.session.get("https://catalog.crystalcommerce.com/categories/{0}".format(target_cat))
-		self.session.execute_script(
+		self.driver.get("https://catalog.crystalcommerce.com/categories/{0}".format(target_cat))
+		self.driver.execute_script(
 			'''
 			var f = document.getElementsByClassName('control-group')[0];
 			for (i = 0 ; i < f.children.length ; i++){
@@ -419,10 +422,10 @@ class Cat_product_add(Cat_session):
 			}}'''
 			)
 
-		while self.session.execute_script('return document.readyState') != "complete":
+		while self.driver.execute_script('return document.readyState') != "complete":
 			#this is here to prevent the product name from being added before the page is finished loading
 			time.sleep(.1)
-		start = self.session.current_url
+		start = self.driver.current_url
 		
 		
 		keys = list(attrs.keys())
@@ -448,7 +451,7 @@ class Cat_product_add(Cat_session):
 				attrs['Photo Present'] = 0
 			else:
 				attrs['Photo Present'] = 1
-		self.session.execute_script(
+		self.driver.execute_script(
 			'''
 			var items = document.getElementsByTagName('*');
 			for (i = 0; i < items.length ; i++){
@@ -456,10 +459,10 @@ class Cat_product_add(Cat_session):
         			var result = items[i] ;
         			result.click();
 			}}''')
-		while self.session.execute_script('return document.readyState') != "complete" or self.session.current_url == start:
+		while self.driver.execute_script('return document.readyState') != "complete" or self.driver.current_url == start:
 			time.sleep(.5)
 			#needs exception handling in order to catch any kickback from server regarding duplicate barcodes and/or ASINs
-		final_url = self.session.current_url
+		final_url = self.driver.current_url
 		product_id = fn_grab(final_url)
 		attrs["Product Id"] = product_id
 		self.__add_list.append(attrs) #adds attrs to __add_list
@@ -537,6 +540,7 @@ class Cat_product_add(Cat_session):
 				confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
 			except:
 				print("ERROR HAS OCCCURED")
+				print(sys.exc_info()[:])
 				#neeeds to be more specific
 				failed_item = S_format(items[i]).d_sort()
 				failure_list.append(failed_item)
@@ -572,15 +576,15 @@ class Cat_product_add(Cat_session):
 
 	def add_image(self, image_name):
 		try:
-			photo_element = self.session.find_element_by_id('product_photo')
+			photo_element = self.driver.find_element_by_id('product_photo')
 		except:
 			return False
 		photo_element.send_keys(image_name)
 	def update_image(self, prod_id, image_name):
 		assert type(prod_id) == int, "Product Id must be int"
-		start = self.session.current_url
+		start = self.driver.current_url
 		url = 'https://catalog.crystalcommerce.com/products/' + str(x) + '/edit'
-		self.session.get(url)
+		self.driver.get(url)
 		while load_check(start):
 			time.sleep(.3)
 		self.add_image(image_name)
@@ -588,7 +592,7 @@ class Cat_product_add(Cat_session):
 	def load_check(self, start):
 		#takes initial url (url of page before request) as argument
 
-		if self.session.execute_script('return document.readyState') != "complete" and self.session.current_url == start:
+		if self.driver.execute_script('return document.readyState') != "complete" and self.driver.current_url == start:
 			return True
 		else:
 			return False
@@ -610,7 +614,7 @@ class Cat_product_add(Cat_session):
 				}}
 				}}
 			'''.format(crit, value)
-		self.session.execute_script(command)
+		self.driver.execute_script(command)
 
 
 
@@ -737,8 +741,15 @@ def add_barcodes(bcodes):
 
 def add_preorders(x, dupe_check = True):
 	cat_inst = Cat_product_add()
-	cat_inst.set_dupe_check = dupe_check
+	cat_inst.set_dupe_check(dupe_check)
+	cat_inst.start_browser()
+	time.sleep(3)
 	cat_inst.start()
+	image_check = dictionarify(x)
+	for i in image_check:
+		check = i["Product Image"]
+		check = i["Product Name"]
+		check = i["Manufacturer SKU"]
 	cat_inst.add_prod_cat_batch(x)
 	items = cat_inst.get_addlst()
 	columns = ['product_name', 'product_id', 'sku', 'manufacturer', 'category_id', 'date_added']
@@ -747,10 +758,13 @@ def add_preorders(x, dupe_check = True):
 		if i["Product Id"].isdigit():
 			info = [i["Product Name"], i["Product Id"], i.get('Manufacturer SKU', ''), i.get("Manufacturer", ''), i.get("Category", ''), date_form()]
 			try:
-				test_add.dbase_add(info, columns, 'preorders','adds' )
+				cat_inst.dbase_add(info, columns, 'preorders','adds' )
 			except:
 				
 				print("Failed to add {0}".format(i["Product Name"]))
+			else:
+				print("Added {0} to database.".format(i["Product Name"]))
+
 	return "Complete"
 def add_items(x, session = ''):
 	if session != '':
@@ -761,11 +775,16 @@ def add_items(x, session = ''):
 	cat_inst.add_prod_cat_batch(x)
 	return cat_inst.get_addlst()
 
-def test_add_f():
-	test_add.set_tba_list('commaitems.csv')
+def test_add_f(fname, ignore_p_id = False):
+	test_add = Cat_product_add()
+	test_add.set_tba_list(fname)
 	test1 = test_add.get_tba_list()
+
 	for i in test1:
 		i["Dtime"] = date_form()
+		if ignore_p_id:
+			i["Product Id"] = "0000000"
+			i["Manufacturer"]
 	headers = test_add.dbObject.retr_columns('adds')
 	test_add.submit_tbalst(["Product Name", "Product Id", "Manufacturer SKU", "Manufacturer", "Category", "Dtime"], headers, 'preorders', 'adds')
 #test_add_f()

@@ -173,6 +173,8 @@ class Asin_Add_Main(object):
 		else:
 			return [name, ASIN]
 
+
+
 def load_check(start):
 	#checks to see if self.browser has switched to the sellercentral page after clicking on the save button on the item creation page
 	if self.browser.js('return document.readyState') != "complete" or start not in self.browser.driver.current_url:

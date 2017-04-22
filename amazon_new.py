@@ -1,4 +1,5 @@
 from soupclass8 import *
+import time
 
 
 class Asin_create(object):
@@ -12,11 +13,30 @@ class Asin_create(object):
 		#self.header = r_csv_2(p_list, mode = 'rb', encoding = 'ISO-8859-1' )[0]
 		self.asins = []
 		self.__fail_lst = []
+		self.merch_ids = text_l("C:\\Users\\Owner\\Documents\\Important\\amazon_creds.txt")
 
 	def get_p_lst(self):
 		return self.p_list
 	def set_p_lst(self, x):
 		self.p_lst = x
+	def toggle_mkt(self, x):
+		if x in ['magic', 'Magic', 'mtg', 'MTG']:
+			command = """ 
+				var magic_opt = '/merchant-picker/change-merchant?url=%2F&marketplaceId={0}&merchantId={1}"'
+				for (i = 0 ; i < document.getElementById('sc-mkt-picker-switcher-select').children.length ; i++){
+					if (document.getElementById('sc-mkt-picker-switcher-select').children[i].children[0] == magic_opt){
+						document.getElementById('sc-mkt-picker-switcher-select').children[i].children[0].click()
+					}
+				}
+				""".format(self.merch_ids[0], self.merch_ids[1])
+			self.browser.js(command)
+		#not finished
+	def go_to_search_page(self):
+		self.browser.go_to("https://sellercentral.amazon.com/inventory/")
+		if self.load_check('inventory'):
+			time.sleep(.5)
+
+
 
 
 	def start(self):
@@ -31,6 +51,7 @@ class Asin_create(object):
 		self.asins = x
 
 	def add_single(self, x, dir_n = "C:\\Users\\Owner\\Desktop\\I\\" ):
+		start_time = time.time()
 		n = 0
 		self.browser.go_to("https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES")
 		#name
@@ -98,7 +119,8 @@ class Asin_create(object):
 				time.sleep(1)
 				if load_check_abort > 30:
 					raise RuntimeError("Amazon either took too long to respond or objected to the item.")
-			print("Found sellarcentral page")
+			print("Found sellarcentral page. Process took {0} seconds.".format(time.time() - start_time))
+
 			return True
 		else:
 			return False
@@ -109,6 +131,44 @@ class Asin_create(object):
 		x =  dir_n + x
 
 		self.browser.js("return document.getElementById('Parent-ProductImage_MAIN-div').children[2].getElementsByTagName('input')[10]").send_keys(x)
+	def update_single(self, x, dir_n = "C:\\Users\\Owner\\Desktop\\I\\" ):
+		self.browser.go_to("https://catalog.amazon.com/abis/product/DisplayEditProduct?marketplaceID=ATVPDKIKX0DER&ref=xx_myiedit_cont_myifba&sku={0}&asin={1}".format(x["Product Id"], x['asin'], self.merch_ids[0]))
+		#updates name
+		self.browser.js("document.getElementById('item_name').value = '{0}'".format(prep(x["Product Name"])))
+		#clicks over to image tab to update image
+		self.browser.js("document.getElementById('image-tab').click()")
+		time.sleep(1)
+		#removes the image
+		self.browser.js("document.getElementById('Parent-ProductImage_MAIN-div').children[2].getElementsByTagName('button')[0].click()")
+		#adds new image
+		self.add_image(x["Product Image"], dir_n)
+		#updates description
+		self.browser.js("document.getElementById('product_description').value = '{0}'".format(prep(x["Description"])))
+
+		while not self.browser.is_enabled("main_submit_button"):
+			n += 1
+			time.sleep(.5)
+			if n >= 20:
+				raise Amazon_Validation_Error("Amazon will not validate {0}".format(x["Product Name"]))
+		if self.browser.is_enabled("main_submit_button"):
+			#this is for testing only
+			self.browser.js("document.getElementById('main_submit_button').click()")
+			print("CLICKED THE SUBMIT BUTTON!")
+			load_check_abort = 0
+			#has to wait for the page to transition to the seller central page
+			while self.load_check('sellercentral'):
+				print("Waiting for sellercentral page")
+				load_check_abort += 1
+				time.sleep(1)
+				if load_check_abort > 30:
+					raise RuntimeError("Amazon either took too long to respond or objected to the item.")
+			print("Found sellarcentral page. Process took {0} seconds.".format(time.time() - start_time))
+
+			return True
+		else:
+			return False
+
+
 
 	def add_csv(self, dir_n = "C:\\Users\\Owner\\Desktop\\I\\"):
 		succ_list = [self.header]
@@ -147,24 +207,25 @@ class Asin_create(object):
 		w_csv(fail_list, "FAILED ADDS.csv")
 	def retrieve_asins(self):
 		for i in range(0, len(self.p_list)):
+
 			self.asins.append(self.grab_asin(self.p_list[i]["Product Id"]))
 		w_csv(self.asins, "ASIN_list.csv")
-	def grab_asin(self, name):
+	def grab_asin(self, name1):
 		wait = 3
 		#retrieves ASIN that has already been created. Need product id.
 		#name == Product Id or Item Sku on Amazon 
 		#needs to be on the "Manage Inventory" page
 		#name = re.sub("'", "39;", name) #used to be \\'
 		try:
-			int(name)
+			int(name1)
 		except ValueError as VE:
-			name = re.sub("'", rep, name)
+			name1 = re.sub("'", rep, name1)
 			if "Foil" not in name:
-				name_1 = name + " NOT Foil"
+				name_1 = name1 + " NOT Foil"
 			else:
-				name_1 = name
+				name_1 = name1
 		else:
-			name_1 = str(name)
+			name_1 = str(name1)
 
 		self.browser.js("document.getElementById('myitable-search').value ='" + name_1 + "' ;")
 		self.browser.js("document.getElementById('myitable-search-button').children[0].children[0].click();")
@@ -173,6 +234,7 @@ class Asin_create(object):
 		#ASIN = self.browser.js("return document.getElementById('NjIzMjk2Mw_e_e-title-asin').children[0].children[0].innerHTML;")
 		try:
 			ASIN = re.sub('\n', '', site.find('div', {'data-column':'asin'}).text).strip()
+			name = re.sub('\n', '', site.find('div', {'data-column':'sku'}).text).strip()
 		except TypeError as TE:
 			return [name, "None"]
 		except AttributeError as AE:
