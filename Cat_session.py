@@ -7,6 +7,7 @@ import time
 from log import entry_maker
 from dbaseObject import *
 from Imprt_csv import *
+from Cat_dbase import *
 
 
 text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
@@ -18,6 +19,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		self.password = text_cred[1]
 		self.driver = ''
 		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'preorders', '192.168.5.90')
+		self.cat_dbase = Cat_dbase()
 		#in the future allow the user to select which browser to use (would need to make this a child of a parent that did that)
 		#self.driver = webdriver.PhantomJS()
 		self.args = args
@@ -499,13 +501,39 @@ class Cat_product_add(Cat_session):
 		self.dbObject.cust_com(full_com)
 		return full_com
 	def dbase_dupe_check(self, dbase, table, column, x):
-		self.dbaseObject.cust_com("Use {0};".format(dbase))
+		self.dbObject.cust_com("Use {0};".format(dbase))
 
-		resp = self.dbaseObject.query("SELECT {1} FROM {0} WHERE {1} = \"{2}\"".format(table, column, self.dbase_q_form(str(x))))
+		resp = self.dbObject.query("SELECT {1} FROM {0} WHERE {1} = \"{2}\"".format(table, column, self.dbase_q_form(str(x))))
 		if resp[0] == x:
 			return True
 		else:
 			return False
+	def cat_dupe_check(self, data, cats = True):
+		results = []
+		for i in data:
+			if cats:
+				res = self.cat_dbase.is_in_cat("name", i["Product Name"], i["Category"])
+			else:
+				res = self.cat_dbase.is_in_cat("name", i["Product Name"])
+			if res and cats:
+				prod = self.cat_dbase.query("SELECT id FROM products WHERE name = \"{0}\" AND category_id = \"{1}\";".format(i["Product Name"], i["Category"]))
+				if len(prod) > 1:
+					print("{0} is already in catalog (multiple times in fact) (See: {1})".format(i["Product Name"], str(prod[0][0])))
+				else:
+					print("{0} is already in catalog (See: {1})".format(i["Product Name"], str(prod[0][0])))
+
+				results.append(i)
+			elif res and not cats:
+				prod = self.cat_dbase.query("SELECT id FROM products WHERE name = \"{0}\";".format(i["Product Name"]))
+				if len(prod) > 1:
+					print("{0} is already in catalog (multiple times in fact) (See: {1})".format(i["Product Name"], str(prod[0][0])))
+				else:
+					print("{0} is already in catalog (See: {1})".format(i["Product Name"], str(prod[0][0])))
+
+				results.append(i)
+
+		self.__duplicates = results
+
 
 
 	def add_prod_cat_batch(self, fname, log = 0):
@@ -750,6 +778,10 @@ def add_preorders(x, dupe_check = True):
 		check = i["Product Image"]
 		check = i["Product Name"]
 		check = i["Manufacturer SKU"]
+		try:
+			i["Year"]
+		except KeyError:
+			i["Year"] = str(time.localtime()[0])
 	cat_inst.add_prod_cat_batch(x)
 	items = cat_inst.get_addlst()
 	columns = ['product_name', 'product_id', 'sku', 'manufacturer', 'category_id', 'date_added']

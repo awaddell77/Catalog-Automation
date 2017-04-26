@@ -115,6 +115,18 @@ class Cat_dbase(Db_mngmnt):
 			return False
 		else:
 			return True
+	def is_in_cat(self, desc, value, category = ''):
+		#returns TRUE if an identical desc value is already in catalog
+		if category:
+			res = self.query("SELECT id FROM products WHERE {0} = \"{1}\" AND category_id = \"{2}\";".format(str(desc), str(value), str(category)))
+		elif not category:
+			res = self.query("SELECT id FROM products WHERE {0} = \"{1}\";".format(str(desc), str(value)))
+		if not res:
+			#if empty it returns false
+			return False
+		else:
+			return True
+
 	def cat_need_asin(self, cat_id):
 		need_asins_lst = []
 		res = self.get_category_contents(cat_id, True)
