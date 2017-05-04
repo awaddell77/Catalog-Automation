@@ -287,6 +287,7 @@ class Asin_update:
 			self.delete_bcodes()
 	def update_asins(self, sql = True):
 		issues = []
+		self.cat_obj.reconnect()
 		for i in range(0, len(self.__asin_id_lst)):
 			#not pythonic but the only way to ensure it doesn't add string containing "None"
 			#also ASINs aren't always alphanumeric and can contain only letters
@@ -294,13 +295,13 @@ class Asin_update:
 			if self.__asin_id_lst[i][1] != "None":
 				if sql:
 					try:
-						self.cat_obj.update_product(str(self.__asin_id_lst[i][0]), 'asin', self.asin_id_lst[i][1])
+						self.cat_obj.update_product(str(self.__asin_id_lst[i][0]), 'asin', self.__asin_id_lst[i][1])
 					except KeyboardInterrupt as KE:
 						break
 					except:
 						print("General error occured")
 						print(sys.exc_info()[:])
-						issues.append(str(i[0]))
+						issues.append(str(self.__asin_id_lst[i][0]))
 
 
 				else:
@@ -318,6 +319,7 @@ class Asin_update:
 		results = [{"Product Id": str(i)} for i in p_ids]
 
 		self.set_retr_lst(results)
+		self.get_asins()
 
 
 	def keep_live(self, interval = 30):

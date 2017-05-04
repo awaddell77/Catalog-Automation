@@ -10,6 +10,7 @@ while True:
 		main_inst.mov_ids()
 		main_inst.get_descriptions()
 		main_inst.create_asins()
+		#need to make 
 		main_inst.get_asins()
 		main_inst.delete_bcodes()
 		main_inst.update_asins()

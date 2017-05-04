@@ -78,8 +78,8 @@ class Amzn_lst_single:
 			card = self.__ws_form()
 			return card
 		elif self.__values["Product Type"] == "Pokemon Singles":
-			self.set_game('Pokémōn')
-			self.set_man("The Pokémōn company")
+			self.set_game('Pokémon')
+			self.set_man("The pokemon company")
 			self.set_keywords('teenage boys')
 			card = self.__pkm_form()
 			return card

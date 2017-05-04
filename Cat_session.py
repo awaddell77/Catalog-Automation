@@ -8,7 +8,7 @@ from log import entry_maker
 from dbaseObject import *
 from Imprt_csv import *
 from Cat_dbase import *
-
+from d_copy import *
 
 text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
 class Cat_session(object):#parent class for this pseudo-API
@@ -38,6 +38,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		while data not in terminate:
 			data = input('>>')
 			self.interpreter(data)
+
 	def source(self):
 		return bs(self.driver.page_source, 'lxml')
 
@@ -52,6 +53,10 @@ class Cat_session(object):#parent class for this pseudo-API
 
 
 	def start(self):#login method
+		if not self.driver:
+			#starts browser if it isn't already open
+			self.start_browser()
+
 		self.driver.get('https://accounts.crystalcommerce.com/users/sign_in')
 		element = self.driver.find_element_by_id('user_email')
 		element1 = self.driver.find_element_by_id('user_password')
@@ -339,6 +344,7 @@ class Cat_product_add(Cat_session):
 		self.__tba_fail_lst =[]
 		self.__duplicates = []
 		self.__dupe_check = False
+		self.fname = ''
 	def get_addlst(self):
 		return self.__add_list
 	def reset_addlst(self):
@@ -408,6 +414,7 @@ class Cat_product_add(Cat_session):
 
 	def add_prod_cat_def(self, target_cat, attrs, image_folder="C:\\Users\\Owner\\Desktop\\I\\"):
 		#adds a single product to a single category (id)
+		attrs = d_copy(attrs)
 		def_image = "C:\\Users\\Owner\\Desktop\\I\\Card Backs & Logos\\no-image.jpg"
 		assert type(target_cat) == int, "{0} must be int".format(target_cat)
 		assert type(attrs) == dict, "{0} must be dict".format(attrs)
@@ -439,9 +446,13 @@ class Cat_product_add(Cat_session):
 		if "Manufacturer SKU" in keys:
 			self.crit_find("Manufacturer SKU", attrs["Manufacturer SKU"])
 		#product name must be added first in order to prevent it from being overridden by unneccessary/improper descriptors (e.g. "Name")
-		keys_added = ['Category', 'Product Name', 'Manufacturer SKU']
+		keys_added = ['Category', 'Product Name', 'Manufacturer SKU', 'Product Image']
+		#TESTING ONLY REMOVE LATER#########################
+		#print("ADDING CRITS!")
 		for i in range(0, len(keys)):
+
 			if keys[i] not in keys_added:
+				#print("Adding {0}".format(str(keys[i])))
 				self.crit_find(keys[i], attrs[keys[i]])
 		#need to add image loader here
 		photo_name = attrs.get('Product Image', def_image)
@@ -510,38 +521,45 @@ class Cat_product_add(Cat_session):
 			return False
 	def cat_dupe_check(self, data, cats = True):
 		results = []
+		non_dupe = []
 		for i in data:
+			#name = self.dbase_q_form(i["Product Name"])
 			if cats:
-				res = self.cat_dbase.is_in_cat("name", i["Product Name"], i["Category"])
+				res = self.cat_dbase.is_in_cat("name", self.dbase_q_form(i["Product Name"]), i["Category"])
 			else:
-				res = self.cat_dbase.is_in_cat("name", i["Product Name"])
+				res = self.cat_dbase.is_in_cat("name", self.dbase_q_form(i["Product Name"]))
 			if res and cats:
-				prod = self.cat_dbase.query("SELECT id FROM products WHERE name = \"{0}\" AND category_id = \"{1}\";".format(i["Product Name"], i["Category"]))
+				prod = self.cat_dbase.query("SELECT id FROM products WHERE name = \"{0}\" AND category_id = \"{1}\";".format(self.dbase_q_form(i["Product Name"]), i["Category"]))
 				if len(prod) > 1:
-					print("{0} is already in catalog (multiple times in fact) (See: {1})".format(i["Product Name"], str(prod[0][0])))
+					print("{0} is already in catalog (multiple times in fact) (See: {1})".format(self.dbase_q_form(i["Product Name"]), str(prod[0][0])))
 				else:
-					print("{0} is already in catalog (See: {1})".format(i["Product Name"], str(prod[0][0])))
+					print("{0} is already in catalog (See: {1})".format(self.dbase_q_form(i["Product Name"]), str(prod[0][0])))
 
 				results.append(i)
 			elif res and not cats:
-				prod = self.cat_dbase.query("SELECT id FROM products WHERE name = \"{0}\";".format(i["Product Name"]))
+				prod = self.cat_dbase.query("SELECT id FROM products WHERE name = \"{0}\";".format(self.dbase_q_form(i["Product Name"])))
 				if len(prod) > 1:
-					print("{0} is already in catalog (multiple times in fact) (See: {1})".format(i["Product Name"], str(prod[0][0])))
+					print("{0} is already in catalog (multiple times in fact) (See: {1})".format(self.dbase_q_form(i["Product Name"]), str(prod[0][0])))
 				else:
-					print("{0} is already in catalog (See: {1})".format(i["Product Name"], str(prod[0][0])))
+					print("{0} is already in catalog (See: {1})".format(self.dbase_q_form(i["Product Name"]), str(prod[0][0])))
 
 				results.append(i)
+			else:
+				non_dupe.append(i)
+
 
 		self.__duplicates = results
+		return non_dupe
 
 
 
-	def add_prod_cat_batch(self, fname, log = 0):
+	def add_prod_cat_batch(self, cats = True, log = 0):
 		results = []
 		results_names = []
 		pcheck_list = []
 		failure_list = []
-		items = dictionarify(fname)
+		self.__duplicates = []
+		items = self.fname
 		#checks for errors
 		for i in range(0, len(items)):
 			try:
@@ -553,19 +571,26 @@ class Cat_product_add(Cat_session):
 			return pcheck_list
 		#checks for duplicates if __dupe_check is True
 		if self.__dupe_check:
-			for i in items:
+			non_dupes = self.cat_dupe_check(items, cats)
+
+			'''for i in items:
 				if self.dbase_dupe_check('preorders', 'adds', 'product_name', i["Product Name"]):
 					product_id = self.dbaseObject.query("SELECT {1} FROM {0} WHERE {3} = \"{2}\"".format('adds', 'product_id', self.dbase_q_form(str(i["Product Name"])), "product_name"))
 
 					print("\"{0}\" is a duplicate of Product #{1} in the catalog".format(i["Product Name"], product_id[0][0]))
-					self.__duplicates.append(i)
+					self.__duplicates.append(i)'''
 		if self.__duplicates != []:
-			print("Duplicates detected.")
-			raise Duplicate_Detected("Duplicates detected. If you wish to proceed, please remove all the duplicate items or set the system to ignore duplicates")
+			response = input("Duplicates detected. Do you wish to add only the non-duplicates? (Y/N) ")
+			if response not in ['y', 'Y', 'yes']:
+				raise Duplicate_Detected("Duplicates detected. If you wish to proceed, please remove all the duplicate items or set the system to ignore duplicates")
+			else:
+				items = non_dupes
 		#proceeds to create the items
 		for i in range(0, len(items)):
 			try:
 				confirm = self.add_prod_cat_def(int(items[i]['Category']), items[i])
+			except KeyboardInterrupt as KE:
+				break
 			except:
 				print("ERROR HAS OCCCURED")
 				print(sys.exc_info()[:])
@@ -632,13 +657,22 @@ class Cat_product_add(Cat_session):
 		value = str(value).strip(' ')
 		value = re.sub("'", "\\\'",  value)
 		value = re.sub('"', '\\\"', value)
+		print("Attempting to set {0} to \"{1}\"".format(str(crit), str(value)))
 
 		command = '''
+			var p_type = document.getElementsByTagName('legend')[0].innerHTML;
+
 			var items = document.getElementsByTagName('label');
 			for (i = 0; i < items.length; i++){{
 				var ind_item  = items[i].innerHTML;
-				if (ind_item.includes('{0}') && items[i].nextElementSibling.children[0].value == '') {{
-					items[i].nextElementSibling.children[0].value = '{1}' ; 
+				if (p_type.includes('Board Games Product') && ind_item.includes('Publisher') && '{0}' == 'Publisher') {{
+
+					items[i].nextElementSibling.value = '{1}';
+
+				}}
+				else if (ind_item.includes('{0}') && items[i].nextElementSibling.children[0].value == '') {{
+					var t_item  = items[i].nextElementSibling.children[0];
+					t_item.value = '{1}' ; 
 				}}
 				}}
 			'''.format(crit, value)
@@ -782,7 +816,8 @@ def add_preorders(x, dupe_check = True):
 			i["Year"]
 		except KeyError:
 			i["Year"] = str(time.localtime()[0])
-	cat_inst.add_prod_cat_batch(x)
+	cat_inst.fname = dictionarify(x)
+	cat_inst.add_prod_cat_batch()
 	items = cat_inst.get_addlst()
 	columns = ['product_name', 'product_id', 'sku', 'manufacturer', 'category_id', 'date_added']
 

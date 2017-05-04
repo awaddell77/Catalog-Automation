@@ -95,7 +95,7 @@ class Db_mngmnt(object):
 		return rows
 	def __comm(self, command, query = 0):
 		#does not add response to last_resp data field
-		self.cursor.execute(x)
+		self.cursor.execute(command)
 		if query == 0:
 			self.con.commit
 		else:

@@ -231,6 +231,7 @@ class Asin_create(object):
 		self.browser.js("document.getElementById('myitable-search-button').children[0].children[0].click();")
 		time.sleep(wait)
 		site = self.browser.source()
+		name = name1
 		#ASIN = self.browser.js("return document.getElementById('NjIzMjk2Mw_e_e-title-asin').children[0].children[0].innerHTML;")
 		try:
 			ASIN = re.sub('\n', '', site.find('div', {'data-column':'asin'}).text).strip()
