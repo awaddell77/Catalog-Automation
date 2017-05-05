@@ -215,6 +215,8 @@ class Asin_update:
 		print("ASIN creation process took {0} seconds".format(duration))
 	def asin_create_m_cats(self, cats):
 		p_ids = []
+		self.cat_obj.reconnect()
+		self.dbObject.reconnect()
 		if not isinstance(cats, list):
 			raise TypeError("Param must be list")
 		for i in cats:
