@@ -657,7 +657,7 @@ class Cat_product_add(Cat_session):
 		value = str(value).strip(' ')
 		value = re.sub("'", "\\\'",  value)
 		value = re.sub('"', '\\\"', value)
-		print("Attempting to set {0} to \"{1}\"".format(str(crit), str(value)))
+		#print("Attempting to set {0} to \"{1}\"".format(str(crit), str(value)))
 
 		command = '''
 			var p_type = document.getElementsByTagName('legend')[0].innerHTML;

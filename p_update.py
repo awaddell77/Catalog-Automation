@@ -7,4 +7,4 @@ class Pupdate:
 	def import_doc(self, x):
 		#for importing new file without having to start new instance
 		self.new_info = dictionarify(x)
-		
+	
