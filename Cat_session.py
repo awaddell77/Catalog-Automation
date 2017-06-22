@@ -511,14 +511,29 @@ class Cat_product_add(Cat_session):
 		full_com = "INSERT into {0} {1} VALUES {2}".format(table, column_values, row_values)
 		self.dbObject.cust_com(full_com)
 		return full_com
-	def dbase_dupe_check(self, dbase, table, column, x):
-		self.dbObject.cust_com("Use {0};".format(dbase))
+	def dbase_isUnique(self, table, column, x):
+		#returns true if unique
+		#false if duplicate
+		#self.dbObject.cust_com("Use {0};".format(dbase))
 
 		resp = self.dbObject.query("SELECT {1} FROM {0} WHERE {1} = \"{2}\"".format(table, column, self.dbase_q_form(str(x))))
 		if resp[0] == x:
-			return True
-		else:
 			return False
+		else:
+			return True
+	def dbase_dupe_check(self, data, table):
+		#searches dist dbase for match
+		#only looks for name (original_name to be precise)
+		non_dupe = []
+		for i in data:
+			if self.dbase_isUnique(table, "product_name", i["Original_name"]):
+				non_dupe.append(i)
+			else:
+				print("{0} appears to have already been added".format(i["Original_name"]))
+		return non_dupe
+
+
+
 	def cat_dupe_check(self, data, cats = True):
 		results = []
 		non_dupe = []

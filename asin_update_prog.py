@@ -177,7 +177,11 @@ class Asin_update:
 		start = time.time()
 		count = 1
 		for i in self.__prod_info:
-			print("Attempting {0}. #{1} of {2}".format(i["Product Name"],count, len(self.__prod_info)))
+			try:
+				print("Attempting {0}. #{1} of {2}".format(i["Product Name"],count, len(self.__prod_info)))
+			except UnicodeEncodeError as UE:
+				print("UnicodeEncodeError on #{0} of {1}. Proceeding with ASIN creation".format(count, len(self.__prod_info)))
+
 			try:
 				res = self.amazon_inst.add_single(i)
 			except Amazon_Validation_Error as AVE: #untested
@@ -189,6 +193,7 @@ class Asin_update:
 					res = self.amazon_inst.add_single(i)
 				except Amazon_Validation_Error as AVE:
 					self.__fail_lst.append(i)
+					count += 1
 			except KeyboardInterrupt as KI:
 				break
 
