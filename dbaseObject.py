@@ -107,19 +107,19 @@ class Db_mngmnt(object):
 		self.con.commit()
 	def copy_row(self, x):
 		pass
-	def retr_columns(self, table, dtypes = 0):
+	def retr_columns(self, table, dtypes = False):
 		#retrieves the column names, returns them in a list
-		#if dtypes is not 0 then it returns them in a list of tuples (column name, data type)
+		#if dtypes is True then it returns them in a list of tuples (column name, data type)
 
 		resp = self.query("SHOW COLUMNS from {0};".format(table))
-		if dtypes == 0:
-			columns = [i[0] for i in resp]
-			return columns
-		else:
+		if dtypes:
 			results = []
 			for i in resp:
 				results.append((i[0], i[1]))
 			return results
+		else:
+			columns = [i[0] for i in resp]
+			return columns
 	def tables(self):
 		resp = self.__comm("SHOW tables;", 1)
 		tables = [i[0] for i in resp]

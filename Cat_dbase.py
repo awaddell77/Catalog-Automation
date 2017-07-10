@@ -5,8 +5,8 @@ import time
 #should have
 #export category method that produces list of products in category
 class Cat_dbase(Db_mngmnt):
-	def __init__(self):
-		self.creds = text_l('C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt')
+	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt'):
+		self.creds = text_l(credFile)
 		super().__init__(self.creds[1], self.creds[2],'hive_inventory_production', self.creds[0])
 		self.__cat_contents = []
 		self.__proper_desc = False

@@ -10,15 +10,16 @@ from Imprt_csv import *
 from Cat_dbase import *
 from d_copy import *
 
-text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
+
 class Cat_session(object):#parent class for this pseudo-API
-	def __init__(self, *args):
+	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt', host = '192.168.5.90', *args):
+		self.text_cred = text_l(credFile)
 		#self.username = input('Username:') 
 		#self.password = getpass.getpass('Password:')
-		self.username = text_cred[0]
-		self.password = text_cred[1]
+		self.username = self.text_cred[0]
+		self.password = self.text_cred[1]
 		self.driver = ''
-		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'preorders', '192.168.5.90')
+		self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'preorders', '192.168.5.90')
 		self.cat_dbase = Cat_dbase()
 		#in the future allow the user to select which browser to use (would need to make this a child of a parent that did that)
 		#self.driver = webdriver.PhantomJS()

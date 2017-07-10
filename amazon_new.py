@@ -4,7 +4,7 @@ import time
 
 class Asin_create(object):
 	def __init__(self, p_list='', dir_n ="C:\\Users\\Owner\\Desktop\\I\\", *args):
-		self.dir_n = dir_n
+		self.__dir_n = dir_n
 		#self.p_list = conv_to_dict(p_list, self.dir_n)
 		#self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'asins', '192.168.5.90')
 		self.p_list = []
@@ -13,7 +13,15 @@ class Asin_create(object):
 		#self.header = r_csv_2(p_list, mode = 'rb', encoding = 'ISO-8859-1' )[0]
 		self.asins = []
 		self.__fail_lst = []
-		self.merch_ids = text_l("C:\\Users\\Owner\\Documents\\Important\\amazon_creds.txt")
+		#self.merch_ids = text_l("C:\\Users\\Owner\\Documents\\Important\\amazon_creds.txt")
+		self.merch_ids = ['000', '111']
+		self.csv_dir = ''
+		#if abort_delay is True add_single(x) method won't wait 30 seconds to return an error 
+		self.abort_delay = False
+	def set_dir(self, x):
+		self.__dir_n = x
+	def get_dir(self):
+		return self.__dir_n
 
 	def get_p_lst(self):
 		return self.p_list
@@ -50,7 +58,7 @@ class Asin_create(object):
 	def set_asins(self, x):
 		self.asins = x
 
-	def add_single(self, x, dir_n = "C:\\Users\\Owner\\Desktop\\I\\" ):
+	def add_single(self, x ):
 		start_time = time.time()
 		n = 0
 		self.browser.go_to("https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES")
@@ -85,7 +93,7 @@ class Asin_create(object):
 		self.browser.js("document.getElementById('image-tab').click()")
 		time.sleep(1)
 		#Image
-		self.add_image(x["Product Image"], dir_n)
+		self.add_image(x["Product Image"])
 		time.sleep(5)
 		#switch over to Description tab
 		self.browser.js("document.getElementById('tang_description-tab').click()")
@@ -113,26 +121,29 @@ class Asin_create(object):
 			print("CLICKED THE SUBMIT BUTTON!")
 			load_check_abort = 0
 			#has to wait for the page to transition to the seller central page
+			print("Waiting for sellercentral page", end='')
 			while self.load_check('sellercentral'):
-				print("Waiting for sellercentral page")
+				print(".", end='')
 				load_check_abort += 1
 				time.sleep(1)
-				if load_check_abort > 30:
+				if load_check_abort > 30 and self.abort_delay:
+					print()
 					raise RuntimeError("Amazon either took too long to respond or objected to the item.")
+			print()
 			print("Found sellarcentral page. Process took {0} seconds.".format(time.time() - start_time))
 
 			return True
 		else:
 			return False
 
-	def add_image(self, x, dir_n= "C:\\Users\\Owner\\Desktop\\I\\"):
+	def add_image(self, x):
 		if "http://" in x:
 			x = fn_grab(x)
-		x =  dir_n + x
+		x =  self.get_dir() + x
 
 		self.browser.js("return document.getElementById('Parent-ProductImage_MAIN-div').children[2].getElementsByTagName('input')[10]").send_keys(x)
-	def update_single(self, x, dir_n = "C:\\Users\\Owner\\Desktop\\I\\" ):
-		self.browser.go_to("https://catalog.amazon.com/abis/product/DisplayEditProduct?marketplaceID=ATVPDKIKX0DER&ref=xx_myiedit_cont_myifba&sku={0}&asin={1}".format(x["Product Id"], x['asin'], self.merch_ids[0]))
+	def update_single(self, x ):
+		#self.browser.go_to("https://catalog.amazon.com/abis/product/DisplayEditProduct?marketplaceID=ATVPDKIKX0DER&ref=xx_myiedit_cont_myifba&sku={0}&asin={1}".format(x["Product Id"], x['asin'], self.merch_ids[0]))
 		#updates name
 		self.browser.js("document.getElementById('item_name').value = '{0}'".format(prep(x["Product Name"])))
 		#clicks over to image tab to update image
@@ -141,14 +152,14 @@ class Asin_create(object):
 		#removes the image
 		self.browser.js("document.getElementById('Parent-ProductImage_MAIN-div').children[2].getElementsByTagName('button')[0].click()")
 		#adds new image
-		self.add_image(x["Product Image"], dir_n)
+		self.add_image(x["Product Image"], self.get_dir())
 		#updates description
 		self.browser.js("document.getElementById('product_description').value = '{0}'".format(prep(x["Description"])))
 
 		while not self.browser.is_enabled("main_submit_button"):
 			n += 1
 			time.sleep(.5)
-			if n >= 20:
+			if n >= 30:
 				raise Amazon_Validation_Error("Amazon will not validate {0}".format(x["Product Name"]))
 		if self.browser.is_enabled("main_submit_button"):
 			#this is for testing only
@@ -167,10 +178,13 @@ class Asin_create(object):
 			return True
 		else:
 			return False
+	def source(self):
+		return self.browser.source()
 
 
 
-	def add_csv(self, dir_n = "C:\\Users\\Owner\\Desktop\\I\\"):
+	def add_csv(self):
+		dir_n = self.csv_dir
 		succ_list = [self.header]
 		fail_list = [self.header]
 		for i in range(0, len(self.p_list)):
