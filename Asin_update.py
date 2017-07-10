@@ -32,7 +32,7 @@ class Asin_update:
 		self.__amazon_online = False
 		#for successful ASIN creates
 		self.__fail_lst = []
-		#for items that have ASINs that need to be retrieved during the ASIN creation process 
+		#for items that have ASINs that need to be retrieved during the ASIN creation process
 		self.__retr_lst = []
 		#
 		self.__keep_live_check = time.time()
@@ -175,7 +175,7 @@ class Asin_update:
 			self.__prod_info.append(desc)
 		return self.get_prod_info()
 
-	def create_asins_v2(self, limit = 3):
+	def create_asins_v2(self, limit = 10):
 		#should keep on trying to add the single item
 		self.__retr_lst = []
 		self.__fail_lst = []
@@ -187,6 +187,7 @@ class Asin_update:
 			while True:
 				if n_limit > limit:
 					print("Retried {0} times with no success".format(limit))
+					n_limit = 0
 					break
 				try:
 					print("Attempting {0}. #{1} of {2}".format(i["Product Name"],count, len(self.__prod_info)))
@@ -390,7 +391,7 @@ class Asin_update:
 		for i in range(0, len(self.__asin_id_lst)):
 			#not pythonic but the only way to ensure it doesn't add string containing "None"
 			#also ASINs aren't always alphanumeric and can contain only letters
-			
+
 			if self.__asin_id_lst[i][1] != "None":
 				if sql:
 					try:
@@ -412,7 +413,7 @@ class Asin_update:
 			print("Ran into issues updating the following products")
 			return issues
 	def retr_asins_for_cat(self, cat_id, asin_filter = True):
-		#retrieves product ids from catalog, puts them into a list of dictionaries and then assigns that list to retr_lst 
+		#retrieves product ids from catalog, puts them into a list of dictionaries and then assigns that list to retr_lst
 		self.get_ids_cat(cat_id, asin_filter)
 		p_ids = self.get_id_queue()
 		results = [{"Product Id": str(i)} for i in p_ids]
@@ -428,7 +429,7 @@ class Asin_update:
 			self.__keep_live_check = time.time()
 	def wait_stay_live(self, interval = 30):
 		while True:
-			
+
 			try:
 				time.sleep(30)
 
@@ -470,19 +471,6 @@ def export_csv13(lst):
 
 
 
-		
+
 
 #need method that collects product information from catalog and makes an ASIN with it
-
-
-
-
-
-
-
-
-
-
-
-
-
