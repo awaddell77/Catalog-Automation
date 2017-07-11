@@ -1,4 +1,4 @@
-#mysql 
+#mysql
 import re
 from soupclass8 import C_sort,r_csv
 import csv
@@ -8,14 +8,14 @@ import time
 print("mysql.connector.connect(user='username', password='passsword', host='127.0.0.1', database='database_name'")
 class Db_mngmnt(object):
 	def __init__(self, user, password, database, host):
-		self.user = user 
+		self.user = user
 		self.password = password
 		self.database = database
 		self.host = host
 		self.con = mysql.connector.connect(user=self.user, password=self.password, host=self.host, database=self.database)
 		self.cursor = self.con.cursor(buffered = True)
 		self.last_resp = ''
-	
+
 	def reconnect(self):
 		self.con = mysql.connector.connect(user=self.user, password=self.password, host=self.host, database=self.database)
 		self.cursor = self.con.cursor(buffered = True)
@@ -40,7 +40,7 @@ class Db_mngmnt(object):
 		#adds quotes to every item on a csv list
 			for i_2 in range(0, len(x[i])):
 				x[i][i_2] = '"' + x[i][i_2] + '"'
-		return x 
+		return x
 	def table_insert(self, x, table):
 		results = []
 		x = table_data_prep(x)
@@ -125,6 +125,18 @@ class Db_mngmnt(object):
 		tables = [i[0] for i in resp]
 		return tables
 
+	def databases(self):
+		resp = self.__comm("SHOW DATABASES;", 1)
+		dBases = [i[0] for i in resp]
+		return dBases
+	def getTablesColumns(self, dTypes):
+		#returns dictionary with table names as keys and tuples as values
+		tables = self.tables()
+		d = {}
+		for i in tables: d[i] = self.retr_columns(str(i), dTypes)
+		return d
+
+
 	def date_form(self):
 	    #returns the current date in the YYYY-MM-DD HH:MM:SS required by the datetime data type in mysql
 	    full_dt = time.localtime()
@@ -159,7 +171,7 @@ def login(user, password, database = '', host= '127.0.0.1'):
 
 
 test_list = ['test1','test2', 'test3', 'test4' , 'test5']
-test_list2 = [['test1','test2', 'test3', 'test4' , 'test5'], ['test1','test2', 'test3', 'test4' , 'test5'], 
+test_list2 = [['test1','test2', 'test3', 'test4' , 'test5'], ['test1','test2', 'test3', 'test4' , 'test5'],
 ['test1','test2', 'test3', 'test4' , 'test5'], ['test1','test2', 'test3', 'test4' , 'test5']]
 
 '''test = Db_mngmnt('test','test','test')
@@ -167,4 +179,3 @@ print("Testing batch_row_insert_form method")
 test.batch_row_insert_form(test_list)
 print("Testing batch_row_insert_main")
 test.batch_row_insert_main("test", test_list2)'''
-
