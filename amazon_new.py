@@ -16,8 +16,9 @@ class Asin_create(object):
 		#self.merch_ids = text_l("C:\\Users\\Owner\\Documents\\Important\\amazon_creds.txt")
 		self.merch_ids = ['000', '111']
 		self.csv_dir = ''
-		#if abort_delay is True add_single(x) method won't wait 30 seconds to return an error 
+		#if abort_delay is True add_single(x) method won't wait 30 seconds to return an error
 		self.abort_delay = False
+		self.d_dir = "C:\\Users\\Owner\\Catalog-Automation\\Dump"
 	def set_dir(self, x):
 		self.__dir_n = x
 	def get_dir(self):
@@ -29,7 +30,7 @@ class Asin_create(object):
 		self.p_lst = x
 	def toggle_mkt(self, x):
 		if x in ['magic', 'Magic', 'mtg', 'MTG']:
-			command = """ 
+			command = """
 				var magic_opt = '/merchant-picker/change-merchant?url=%2F&marketplaceId={0}&merchantId={1}"'
 				for (i = 0 ; i < document.getElementById('sc-mkt-picker-switcher-select').children.length ; i++){
 					if (document.getElementById('sc-mkt-picker-switcher-select').children[i].children[0] == magic_opt){
@@ -217,17 +218,17 @@ class Asin_create(object):
 					fail_list.append(S_format(self.p_list[i]).d_sort(self.header))
 
 			time.sleep(1)
-		w_csv(succ_list, "SUCCESS LIST.csv")
-		w_csv(fail_list, "FAILED ADDS.csv")
+		w_csv(succ_list , self.d_dir + "SUCCESS LIST.csv")
+		w_csv(fail_list, self.d_dir + "FAILED ADDS.csv")
 	def retrieve_asins(self):
 		for i in range(0, len(self.p_list)):
 
 			self.asins.append(self.grab_asin(self.p_list[i]["Product Id"]))
-		w_csv(self.asins, "ASIN_list.csv")
+		w_csv(self.asins, self.d_dir + "ASIN_list.csv")
 	def grab_asin(self, name1):
 		wait = 3
 		#retrieves ASIN that has already been created. Need product id.
-		#name == Product Id or Item Sku on Amazon 
+		#name == Product Id or Item Sku on Amazon
 		#needs to be on the "Manage Inventory" page
 		#name = re.sub("'", "39;", name) #used to be \\'
 		try:
@@ -266,7 +267,7 @@ class Asin_create(object):
 		else:
 			return False
 def barcode_handling(x):
-	d = x 
+	d = x
 	d["Barcode"] = '[' + str(d["Barcode"])
 	return d
 

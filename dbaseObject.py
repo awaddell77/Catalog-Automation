@@ -115,7 +115,9 @@ class Db_mngmnt(object):
 		if dtypes:
 			results = []
 			for i in resp:
-				results.append((i[0], i[1]))
+				#results.append((i[0], i[1]))
+				results.append(list(i))
+				self.noneFix(results)
 			return results
 		else:
 			columns = [i[0] for i in resp]
@@ -153,6 +155,11 @@ class Db_mngmnt(object):
 	        return "0" + str(x)
 	    else:
 	        return str(x)
+	def noneFix(self, x):
+		for i in x:
+			for i_2 in range(0, len(i)):
+				if i[i_2] is None: i[i_2] = "None"
+
 
 def string_cleanse(x):
 	new = re.sub('"', '', x)

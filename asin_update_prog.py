@@ -5,7 +5,7 @@ from amazon_new import *
 from Amazon_list_format import *
 from Cat_dbase import *
 import time
-
+####################DEPRECATED DO NOT USE
 class Asin_update:
 	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt', *args):
 		#database connection
@@ -31,7 +31,7 @@ class Asin_update:
 		self.__amazon_online = False
 		#for successful ASIN creates
 		self.__fail_lst = []
-		#for items that have ASINs that need to be retrieved during the ASIN creation process 
+		#for items that have ASINs that need to be retrieved during the ASIN creation process
 		self.__retr_lst = []
 		#
 		self.__keep_live_check = time.time()
@@ -299,7 +299,7 @@ class Asin_update:
 		for i in range(0, len(self.__asin_id_lst)):
 			#not pythonic but the only way to ensure it doesn't add string containing "None"
 			#also ASINs aren't always alphanumeric and can contain only letters
-			
+
 			if self.__asin_id_lst[i][1] != "None":
 				if sql:
 					try:
@@ -321,7 +321,7 @@ class Asin_update:
 			print("Ran into issues updating the following products")
 			return issues
 	def retr_asins_for_cat(self, cat_id, asin_filter = True):
-		#retrieves product ids from catalog, puts them into a list of dictionaries and then assigns that list to retr_lst 
+		#retrieves product ids from catalog, puts them into a list of dictionaries and then assigns that list to retr_lst
 		self.get_ids_cat(cat_id, asin_filter)
 		p_ids = self.get_id_queue()
 		results = [{"Product Id": str(i)} for i in p_ids]
@@ -337,7 +337,7 @@ class Asin_update:
 			self.__keep_live_check = time.time()
 	def wait_stay_live(self, interval = 30):
 		while True:
-			
+
 			try:
 				time.sleep(30)
 
@@ -369,19 +369,6 @@ def export_csv13(lst):
 
 
 
-		
+
 
 #need method that collects product information from catalog and makes an ASIN with it
-
-
-
-
-
-
-
-
-
-
-
-
-
