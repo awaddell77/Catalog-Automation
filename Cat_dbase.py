@@ -1,4 +1,4 @@
-#catalog dbase 
+#catalog dbase
 from dbaseObject import *
 from text_l import *
 import time
@@ -206,5 +206,3 @@ class Cat_dbase(Db_mngmnt):
 	def result_format(self, columns,  x):
 		for i in range(0, len(columns)):
 			d[columns[i]] = x[i]
-
-

@@ -446,6 +446,12 @@ class Asin_update:
 			return True
 		else:
 			return False
+	def updateTest(self, p_id):
+		#static method for testing amazon update function
+		prod_info = self.cat_obj.get_product(p_ids)
+		self.amazon_inst.update_single(prod_info)
+
+
 
 
 
