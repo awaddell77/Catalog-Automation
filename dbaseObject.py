@@ -160,7 +160,8 @@ class Db_mngmnt(object):
 			for i_2 in range(0, len(i)):
 				if i[i_2] is None: i[i_2] = "None"
 	def cloneTable(self, x):
-		
+		pass
+
 
 
 def string_cleanse(x):

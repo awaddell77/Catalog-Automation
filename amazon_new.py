@@ -175,6 +175,7 @@ class Asin_create(object):
 				if load_check_abort > 30:
 					raise RuntimeError("Amazon either took too long to respond or objected to the item.")
 			print("Found sellarcentral page. Process took {0} seconds.".format(time.time() - start_time))
+			#TODO return error if the Amazon returns the "website temporarily unavailable" page
 
 			return True
 		else:
