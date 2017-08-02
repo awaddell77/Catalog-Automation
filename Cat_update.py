@@ -4,19 +4,19 @@ from Imprt_csv import *
 class Cat_update(Cat_session):
 	def __init__(self, update_data='', req_crits=["Product Id"], req_not_empty = [] ):
 		super().__init__()
-		self.session = self.driver
+		#self.driver = self.driver
 		self.__tbu_lst = []
 		self.__updated_lst = []
 		self.__fail_lst = []
 		if '.csv' in update_data:
-			self.item_lst = Imprt_csv(update_csv, req_crits)
+			self.item_lst = Imprt_csv(update_data, req_crits)
 			self.item_lst.check_for_issues(req_not_empty)
 			self.dir_n = self.item_lst.dir_n
 		else:
 			self.item_lst = update_data
 			self.dir_n = ''
 
-		
+
 	def update_data_check(self, fields=[]):
 		if "Product Id" not in fields:
 			fields.append("Product Id")
@@ -47,18 +47,18 @@ class Cat_update(Cat_session):
 
 	def load_check(self, start=''):
 		#takes initial url (url of page before request) as argument
-		if start == '' and self.session.execute_script('return document.readyState') != "complete":
+		if start == '' and self.driver.execute_script('return document.readyState') != "complete":
 			return True
-		elif start == '' and self.session.execute_script('return document.readyState') == "complete":
+		elif start == '' and self.driver.execute_script('return document.readyState') == "complete":
 			return False
 
-		elif self.session.execute_script('return document.readyState') != "complete" and self.session.current_url == start:
+		elif self.driver.execute_script('return document.readyState') != "complete" and self.driver.current_url == start:
 			return True
 		else:
 			return False
 	def click_update(self):
 		try:
-			self.session.execute_script(
+			self.driver.execute_script(
 				'''
 				var items = document.getElementsByTagName('*');
 				for (i = 0; i < items.length ; i++){
@@ -75,7 +75,7 @@ class Cat_update(Cat_session):
 		pass
 
 	def update_descriptor_all(self, descriptor, value):
-		#sorts through all descriptors and replaces values with value parameter 
+		#sorts through all descriptors and replaces values with value parameter
 		#also needs exception handling
 		value = str(value).strip(' ')
 		value = re.sub("'", "\\\'",  value)
@@ -86,11 +86,11 @@ class Cat_update(Cat_session):
 			for (i = 0; i < items.length; i++){{
 				var ind_item  = items[i].innerHTML;
 				if (ind_item.includes('{0}') && items[i].nextElementSibling.children[0].value == '') {{
-					items[i].nextElementSibling.children[0].value = '{1}' ; 
+					items[i].nextElementSibling.children[0].value = '{1}' ;
 				}}
 				}}
 			'''.format(descriptor, value)
-		self.session.execute_script(command)
+		self.driver.execute_script(command)
 		return True
 	def update_product_descriptor(self, descriptor, value):
 		#sorts through only those descriptors that are specific to the product type
@@ -104,17 +104,17 @@ class Cat_update(Cat_session):
 			for (i = 0; i < items.length; i++){{
 				var ind_item  = items[i].children[0];
 				if (ind_item.innerHTML == {0}) {{
-					items[i].nextElementSibling.children[0].value = '{1}' ; 
+					items[i].nextElementSibling.children[0].value = '{1}' ;
 				}}
 				}}
 			'''.format(descriptor, value)
-		self.session.execute_script(command)
+		self.driver.execute_script(command)
 
 
 	def image_update(self, image):
 
 		try:
-			photo_element = self.session.find_element_by_id('product_photo')
+			photo_element = self.driver.find_element_by_id('product_photo')
 		except:
 			#self.__fail_lst.append(d_w_image)
 			return False
@@ -127,7 +127,7 @@ class Cat_update(Cat_session):
 			return True
 	def go_to(self, x):
 		url = 'https://catalog.crystalcommerce.com/products/' + str(x) + '/edit'
-		self.session.get(url)
+		self.driver.get(url)
 		while self.load_check():
 			time.sleep(.1)
 		return True
@@ -144,7 +144,7 @@ class Cat_update(Cat_session):
 				print("Failed to add item #{0} (\"{1}\")".format(str(i), update_items[i]["Product Image"]))
 				self.__fail_lst.append(update_items[i])
 			else:
-				url = self.session.current_url
+				url = self.driver.current_url
 				self.click_update()
 				while self.load_check(url):
 					time.sleep(1)
@@ -167,7 +167,7 @@ class Cat_update(Cat_session):
 				print("Failed to add item #{0} (\"{1}\")".format(str(i), update_items[i]["ASIN"]))
 				self.__fail_lst.append(update_items[i])
 			else:
-				url = self.session.current_url
+				url = self.driver.current_url
 				self.click_update()
 				while self.load_check(url):
 					time.sleep(1)
@@ -185,7 +185,3 @@ class Cat_update(Cat_session):
 #cat_inst.start()
 #time.sleep(3)
 #cat_inst.update_images()
-
-
-
-

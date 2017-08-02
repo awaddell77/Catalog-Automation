@@ -2,6 +2,9 @@
 from dbaseObject import *
 from text_l import *
 import time
+import datetime
+from soupclass8 import S_format
+from w_csv import *
 #should have
 #export category method that produces list of products in category
 class Cat_dbase(Db_mngmnt):
@@ -10,6 +13,7 @@ class Cat_dbase(Db_mngmnt):
 		super().__init__(self.creds[1], self.creds[2],'hive_inventory_production', self.creds[0])
 		self.__cat_contents = []
 		self.__proper_desc = False
+		self.exportData = []
 		self.need_asins = []
 
 	def get_cat_contents(self):
@@ -96,7 +100,7 @@ class Cat_dbase(Db_mngmnt):
 		duration = time.time() - time_start
 		print("Took {0} seconds".format(duration))
 		return results
-	def format_results(self, x):
+	def format_results(self, x, fDates = False):
 		crits = list(x.keys())
 		x["Product Name"] = x['name']
 		x["Manufacturer SKU"] = x['manufacturer_sku']
@@ -106,6 +110,11 @@ class Cat_dbase(Db_mngmnt):
 		x["Product Type"] = x['product type']
 		x["Category Name"] = x['category_name']
 		x["Category"] = x['category_name']
+		if fDates:
+			for i in crits:
+				if isinstance(x[i], datetime.datetime): x[i] = str(x[i])
+
+
 		#may need to create new dict that doesn't have all the improperly named keys in the future if size becomes an issue
 		return x
 	def asin_check(self, p_id):
@@ -173,21 +182,6 @@ class Cat_dbase(Db_mngmnt):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	def search_prod(self, x, crit = 'name', exact=False):
 		if exact:
 			res = self.query("SELECT id, name FROM products WHERE {0} = \"{1}\";".format(crit, x))
@@ -202,6 +196,25 @@ class Cat_dbase(Db_mngmnt):
 				return res
 			else:
 				return self.tup_to_lst(res)
+	def exportProducts(self, cats, form = True):
+		#returns list of dictionaries [{}]
+		if not isinstance(cats, list): raise TypeError('Argument must be a list')
+		results = []
+		results2 = []
+		for i in cats:
+			results += self.get_category_contents(i)
+		if not form:
+			self.exportData = results
+			return results
+		for i in results:
+			self.format_results(i, True)
+		self.exportData = results
+		for i in results:
+			results2.append(S_format(i).d_sort())
+		w_csv(results2)
+
+		return results
+
 
 	def result_format(self, columns,  x):
 		for i in range(0, len(columns)):
