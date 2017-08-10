@@ -82,6 +82,17 @@ class Cat_dbase(Db_mngmnt):
 		for i in range(0, len(x)):
 			x[i] = list(x[i])
 		return x
+	def cat_children(self, parent_id):
+		children = self.query("SELECT id FROM categories WHERE ancestry LIKE \"%{0}\";".format(parent_id))
+		return children
+	def move_cat(self, p_id, targetCat):
+		#updates category_id descriptor for a single product
+		if not isinstance(p_id, int) or not isinstance(targetCat, int): raise TypeError("Arguments must be int")
+		self.cust_com("UPDATE products SET category_id = \"{0}\" WHERE id = \"{1}\";".format(targetCat, p_id))
+		print("Updated {0}".format(p_id))
+
+
+
 	def cat_name(self, cat_id):
 		cat = self.query("SELECT name, id FROM categories WHERE id = \"{0}\";".format(cat_id))
 		return cat[0][0]

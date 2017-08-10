@@ -17,7 +17,7 @@ class Asin_create(object):
 		self.merch_ids = ['000', '111']
 		self.csv_dir = ''
 		#if abort_delay is True add_single(x) method won't wait 30 seconds to return an error
-		self.abort_delay = False
+		self.abort_delay = True
 		self.d_dir = "C:\\Users\\Owner\\Catalog-Automation\\Dump"
 	def set_dir(self, x):
 		self.__dir_n = x
@@ -42,6 +42,7 @@ class Asin_create(object):
 		#not finished
 	def go_to_search_page(self):
 		self.browser.go_to("https://sellercentral.amazon.com/inventory/")
+		time.sleep(1)
 		if self.load_check('inventory'):
 			time.sleep(.5)
 
@@ -127,7 +128,8 @@ class Asin_create(object):
 				print(".", end='')
 				load_check_abort += 1
 				time.sleep(1)
-				if load_check_abort > 30 and self.abort_delay:
+				#TODO add else statment, right now if self.abort_delay is false it gets stuck in a permanent loop
+				if load_check_abort > 12 and self.abort_delay:
 					print()
 					raise RuntimeError("Amazon either took too long to respond or objected to the item.")
 			print()

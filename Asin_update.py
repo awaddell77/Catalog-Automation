@@ -38,6 +38,7 @@ class Asin_update:
 		self.__keep_live_check = time.time()
 		self.asin_create_timer = 0
 		self.retryCreate = True
+		self.attemptDelay = False
 	def start_up_all(self):
 		#self.cat_update_inst.start()
 		self.amazon_inst.start()
@@ -182,12 +183,16 @@ class Asin_update:
 		start = time.time()
 		count = 1
 		n_limit = 0
+		kI = False
 
 		for i in self.__prod_info:
-			while True:
+
+			while True and not kI:
+				if self.attemptDelay: time.sleep(30)
 				if n_limit > limit:
 					print("Retried {0} times with no success".format(limit))
 					n_limit = 0
+					count += 1
 					break
 				try:
 					print("Attempting {0}. #{1} of {2}".format(i["Product Name"],count, len(self.__prod_info)))
@@ -205,16 +210,18 @@ class Asin_update:
 						res = self.amazon_inst.add_single(i)
 					except Amazon_Validation_Error as AVE:
 						self.__fail_lst.append(i)
-						count += 1
-						break
+						#count += 1
+						n_limit += 1
+
 
 
 					except:
 						print("General Error Occurred with {0}".format(i["Product Name"]))
 						print(sys.exc_info()[:])
 						self.__fail_lst.append(i)
-						count += 1
-						break
+						#count += 1
+						n_limit += 1
+						#break
 
 				except RuntimeError as RE:
 					#while not res and n_limit < limit:
@@ -224,6 +231,7 @@ class Asin_update:
 
 
 				except KeyboardInterrupt as KI:
+					kI = True
 					break
 
 				except:
@@ -378,6 +386,7 @@ class Asin_update:
 		#if update_all is true then it searches for ASINs using all of the product ids, even if they aren't on the retr_lst
 		if update_all:
 			p_ids = self.get_id_create_queue()
+			p_ids = [{"Product Id": str(i)} for i in p_ids]
 		else:
 			p_ids = self.get_retr_lst()
 		for i in p_ids:

@@ -79,13 +79,15 @@ class Amzn_lst_single:
 			return card
 		elif self.__values["Product Type"] == "Pokemon Singles":
 			self.set_game('Pokémon')
-			self.set_man("The pokemon company")
+			#self.set_man("The pokemon company")
+			self.set_man('Pokémon Company International')
 			self.set_keywords('teenage boys')
 			card = self.__pkm_form()
 			return card
 
 		else:
 			print("Product Type \"{0}\" is not recognized".format(self.__values["Product Type"]))
+			#TODO fix this, should return same datatype (in this case, a dictionary)
 	def __ygo_form(self):
 		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
 		#downloads the image the directory listed in the dir data field if d_opt is True
@@ -126,7 +128,7 @@ class Amzn_lst_single:
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
@@ -160,7 +162,7 @@ class Amzn_lst_single:
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
@@ -194,7 +196,7 @@ class Amzn_lst_single:
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
@@ -231,7 +233,7 @@ class Amzn_lst_single:
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
