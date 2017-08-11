@@ -19,7 +19,7 @@ class Asin_update:
 		#makes object return the product information dicts with the proper key names
 		self.cat_obj.set_proper_desc(True)
 		#catalog update instance
-		self.cat_update_inst = Cat_update()
+		self.cat_update_inst = Cat_update(credFile)
 		#amazon connection
 		self.amazon_inst = Asin_create()
 		#product information
