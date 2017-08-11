@@ -8,16 +8,18 @@ from text_l import *
 import time
 
 class Asin_update:
-	def __init__(self, host ='192.168.5.90', credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt', *args):
+	def __init__(self, host ='192.168.5.90', credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt',
+		credfile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt',*args):
 		#database connection
 		self.text_cred = text_l(credFile)
 		self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'asins', host)
 		#catalog database connection
+		#TODO add way to use different credentials using arguments in Cat_dbase and Asin_update
 		self.cat_obj = Cat_dbase()
 		#makes object return the product information dicts with the proper key names
 		self.cat_obj.set_proper_desc(True)
 		#catalog update instance
-		self.cat_update_inst = Cat_update()
+		self.cat_update_inst = Cat_update(credFile2)
 		#amazon connection
 		self.amazon_inst = Asin_create()
 		#product information
