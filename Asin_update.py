@@ -15,11 +15,11 @@ class Asin_update:
 		self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'asins', host)
 		#catalog database connection
 		#TODO add way to use different credentials using arguments in Cat_dbase and Asin_update
-		self.cat_obj = Cat_dbase()
+		self.cat_obj = Cat_dbase(credfile2)
 		#makes object return the product information dicts with the proper key names
 		self.cat_obj.set_proper_desc(True)
 		#catalog update instance
-		self.cat_update_inst = Cat_update(credFile2)
+		self.cat_update_inst = Cat_update()
 		#amazon connection
 		self.amazon_inst = Asin_create()
 		#product information
