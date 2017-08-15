@@ -815,6 +815,13 @@ def add_barcodes(bcodes):
 		x.dbase_add(info, ["barcode", "date_added"], "asins", "barcodes")
 	print("Done")
 	x = ''
+def dupeCheck(x):
+	cat_inst = Cat_product_add()
+	cat_inst.set_dupe_check(True)
+	data = dictionarify(x)
+	res = cat_inst.cat_dupe_check(data)
+	return res
+
 
 
 def add_preorders(x, dupe_check = True):
