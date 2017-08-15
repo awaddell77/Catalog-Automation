@@ -2,6 +2,7 @@
 import random
 from Im_dwnld import *
 from I_handling import *
+
 class Amzn_lst_single:
 	def __init__(self, values):
 		self.__values = values
