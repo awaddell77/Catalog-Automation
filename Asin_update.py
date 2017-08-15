@@ -9,7 +9,7 @@ import time
 
 class Asin_update:
 	def __init__(self, host ='192.168.5.90', credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt',
-		credfile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt',*args):
+		credFile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt',*args):
 		#database connection
 		self.text_cred = text_l(credFile)
 		self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'asins', host)
