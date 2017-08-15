@@ -2,7 +2,7 @@ from Cat_session import *
 from Imprt_csv import *
 
 class Cat_update(Cat_session):
-	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt',update_data='', req_crits=["Product Id"], req_not_empty = [] ):
+	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt', credFile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt', update_data='', req_crits=["Product Id"], req_not_empty = [] ):
 		super().__init__(credFile)
 		#self.driver = self.driver
 		self.__tbu_lst = []
