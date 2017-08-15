@@ -6,6 +6,7 @@
 	"CCDB_IP":"",
 	"DB_Username":"",
 	"DB_Password":"",
-	"DB_IP":""
+	"DB_IP":"",
+	"Photo_Dir":"DIRECTORY THAT CARD IMAGES WILL BE PUT INTO"
 
 }

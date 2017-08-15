@@ -6,10 +6,12 @@ from Amazon_list_format import *
 from Cat_dbase import *
 from text_l import *
 import time
+from loadJson import *
 
 class Asin_update:
 	def __init__(self, host ='192.168.5.90', credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt',
 		credFile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt',*args):
+		self.jData = loadJson('credFile.json')
 		#database connection
 		self.text_cred = text_l(credFile)
 		self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'asins', host)
@@ -171,6 +173,7 @@ class Asin_update:
 			#self.cat_update_inst.prod_go_to(p_ids[i])
 			prod_info = self.cat_obj.get_product(p_ids[i])
 			desc = Amzn_lst_single(prod_info)
+			desc.set_dir(self.jData['Photo_Dir'])
 			desc.set_d_opt(get_images)
 			desc = desc.form()
 			#desc = Amzn_lst_single(self.cat_update_inst.descriptor_get()).form()
