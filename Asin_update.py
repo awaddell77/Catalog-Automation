@@ -14,7 +14,8 @@ class Asin_update:
 		self.jData = loadJson('credFile.json')
 		#database connection
 		self.text_cred = text_l(credFile)
-		self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'asins', host)
+		#self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'asins', host)
+		self.dbObject = Db_mngmnt(self.jData['DB_Username'], self.jData['DB_Password'], 'asins', self.jData['DB_IP'])
 		#catalog database connection
 		#TODO add way to use different credentials using arguments in Cat_dbase and Asin_update
 		self.cat_obj = Cat_dbase(credFile2)
