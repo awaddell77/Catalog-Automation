@@ -280,6 +280,8 @@ class Amzn_lst_single:
 		else:
 			#if Set Name descriptor is the same as the category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '')
+		if d["Card Number"] not in full_name and d["Card Number"]:
+			full_name += " - " + d["Card Number"]
 
 		d["Product Name"] = full_name
 		d["Product Id"] = self.__values['Product Id']
