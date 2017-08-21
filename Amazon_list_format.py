@@ -269,7 +269,7 @@ class Amzn_lst_single:
 		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
 		#downloads the image the directory listed in the dir data field if d_opt is True
 		d = {}
-		card_name = self.__values["Product Name"]
+		card_name = "Dragon Ball Super TCG" + self.__values["Product Name"]
 		cat_name = self.__values.get("Category", '')
 		if not self.__values.get("Set Name", ''):
 			#if Set Name descriptor is empty
