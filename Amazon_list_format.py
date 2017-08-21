@@ -88,7 +88,7 @@ class Amzn_lst_single:
 		elif self.__values["Product Type"] == "Dragon Ball Super TCG Singles":
 			self.set_game('Dragon Ball Super')
 			#self.set_man("The pokemon company")
-			self.set_man('Bandai')
+			self.set_man('Dragon Ball Super TCG')
 			self.set_keywords('teenage boys')
 			card = self.__dbs_form()
 			return card
