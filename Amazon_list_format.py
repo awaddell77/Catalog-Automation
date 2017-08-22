@@ -92,6 +92,13 @@ class Amzn_lst_single:
 			self.set_keywords('teenage boys')
 			card = self.__dbs_form()
 			return card
+		elif self.__values["Product Type"] == "Dragoborne Singles":
+			self.set_game('Dragoborne')
+			#self.set_man("The pokemon company")
+			self.set_man('Bushiroad')
+			self.set_keywords('teenage boys')
+			card = self.__dragoborne_form()
+			return card
 
 		else:
 			print("Product Type \"{0}\" is not recognized".format(self.__values["Product Type"]))
@@ -282,6 +289,41 @@ class Amzn_lst_single:
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '')
 		if self.__values["Card Number"] not in full_name and self.__values["Card Number"]:
 			full_name += " - " + self.__values["Card Number"]
+
+		d["Product Name"] = full_name
+		d["Product Id"] = self.__values['Product Id']
+		d["MSRP"] = str(random.randint(1,301) / 100)
+		d["Manufacturer"] = self.get_man()
+		d["Ages"] = self.get_ages()
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
+		if not self.__values.get("Rarity", ''):
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
+		else:
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG). This is of the ' + self.__values['Rarity'] + ' rarity.'
+		d["Product Image"] = self.__values["Product Image"]
+		d["Image Link"] = self.__values["Product Image Link"]
+		if self.get_d_opt():
+			d_inst = Im_dwnld(self.__dir)
+			#brackets are there because it needs to be a list
+			d_inst.i_main([d["Image Link"]])
+		return d
+
+	def __dragoborne_form(self):
+		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
+		#downloads the image the directory listed in the dir data field if d_opt is True
+		d = {}
+		card_name = "Dragon Ball Super TCG - " + self.__values["Product Name"]
+		cat_name = self.__values.get("Category", '')
+		if not self.__values.get("Set Name", ''):
+			#if Set Name descriptor is empty
+			full_name = card_name + ' - ' + cat_name
+		elif self.__values.get("Set Name", '') != cat_name:
+			#if Set Name descriptor is different from category name
+			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
+		else:
+			#if Set Name descriptor is the same as the category name
+			full_name = card_name + ' - ' + self.__values.get("Set Name", '')
 
 		d["Product Name"] = full_name
 		d["Product Id"] = self.__values['Product Id']
