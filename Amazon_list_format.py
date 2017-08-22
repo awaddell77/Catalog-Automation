@@ -95,7 +95,7 @@ class Amzn_lst_single:
 		elif self.__values["Product Type"] == "Dragoborne Singles":
 			self.set_game('Dragoborne')
 			#self.set_man("The pokemon company")
-			self.set_man('Bushiroad')
+			self.set_man('Dragoborne TCG')
 			self.set_keywords('teenage boys')
 			card = self.__dragoborne_form()
 			return card
@@ -313,7 +313,7 @@ class Amzn_lst_single:
 		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
 		#downloads the image the directory listed in the dir data field if d_opt is True
 		d = {}
-		card_name = "Dragoborne TCG - " + self.__values["Product Name"]
+		card_name = self.__values["Product Name"]
 		cat_name = self.__values.get("Category", '')
 		if not self.__values.get("Set Name", ''):
 			#if Set Name descriptor is empty
