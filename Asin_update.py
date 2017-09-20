@@ -44,6 +44,7 @@ class Asin_update:
 		self.asin_create_timer = 0
 		self.retryCreate = True
 		self.attemptDelay = False
+		self.timeEstimate = 48
 	def start_up_all(self):
 		#self.cat_update_inst.start()
 		self.amazon_inst.start()
@@ -331,6 +332,8 @@ class Asin_update:
 		#creates the proper dicts for amazon submission
 		self.get_descriptions()
 		#creates the asins
+		amountOfItems = len(self.get_prod_info())
+		print("{0} items retrieved. Process will take around {1} minute(s)".format(amountOfItems, (amountOfItems * self.timeEstimate) / 60))
 		if self.retryCreate:
 			#calls method that tries to create amazon listing several more times if it errors out the first time
 			self.create_asins_v2()
