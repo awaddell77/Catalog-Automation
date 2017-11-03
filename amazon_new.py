@@ -70,6 +70,8 @@ class Asin_create(object):
 		self.browser.js("document.getElementById('manufacturer').value = '{0}'".format(prep(x["Manufacturer"])))
 		#brand name
 		self.browser.js("document.getElementById('brand_name').value = '{0}'".format(prep(x["Manufacturer"])))
+		#manufacturer part number
+		self.browser.js("document.getElementById('part_number').value = '{0}'".format(prep(x["Part Number"])))
 		#minimum age
 		self.browser.js("document.getElementById('mfg_minimum').value = '{0}'".format(prep(x["Ages"])))
 		#minimum age units

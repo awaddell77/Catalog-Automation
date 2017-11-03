@@ -13,6 +13,7 @@ class Amzn_lst_single:
 		self.__dir = "C:\\Users\\Owner\\Desktop\\I\\"
 		self.__d_opt = True
 		self.__keywords = 'teenage boys'
+		self.part_number = values.get("Card Number", random.randint(0, 100))
 		if not isinstance(self.__values, dict):
 			raise TypeError("Param must be dictionary.")
 		self.__cat_form = False
@@ -122,6 +123,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -156,6 +158,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -190,6 +193,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -224,6 +228,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -261,6 +266,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -297,6 +303,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -332,6 +339,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
