@@ -88,3 +88,6 @@ credFile.json
 warhammer1.txt
 warhammer2.txt
 *.xlsx
+date_script.py
+date_range_select.py
+date_select_script.py

@@ -55,6 +55,10 @@ class Asin_update:
 				break
 			elif (time.time() - amazon_counter) >= 30:
 				raise RuntimeError("You need to log in to the seller central account in the Amazon instance.")'''
+	def standBy(self, interval= 30):
+		while(True):
+			time.sleep(interval)
+			self.amazon_inst.browser.refresh()
 	def get_prod_info(self):
 		return self.__prod_info
 	def set_prod_info(self, x):

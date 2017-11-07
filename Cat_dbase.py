@@ -187,6 +187,19 @@ class Cat_dbase(Db_mngmnt):
 	def update_product(self, p_id, descr, value):
 		print("Updating Product {0} with {1}".format(p_id, value))
 		self.cust_com('UPDATE products SET {0} = \"{1}\" WHERE id = \"{2}\";'.format(descr, value, p_id))
+	def get_dupe_descriptors(self, p_id):
+		#returns duplicate descriptors (i.e. descriptors with the same descriptor ids)
+		#returns [] if there are no duplicates, otherwise it returns a one dimensional list containing the duplicate ids which can be deleted
+		dupes = []
+		results = []
+		desc = self.query("SELECT id, descriptor_id FROM product_descriptors WHERE product_id = \"{0}\" ORDER BY created_at ASC;".format(p_id))
+		for i in range(0, len(desc)):
+			if desc[i][1] in results:
+				dupes.append(desc[i][0])
+			else:
+				results.append(desc[i][1])
+		dupes.sort()
+		return dupes
 	def child_cats(self, parent_cat):
 		res = self.query("SELECT id FROM categories WHERE ancestry = \"188/{0}\"".format(str(parent_cat)))
 		if not res:

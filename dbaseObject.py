@@ -5,7 +5,7 @@ import csv
 import mysql.connector
 import time
 
-print("mysql.connector.connect(user='username', password='passsword', host='127.0.0.1', database='database_name'")
+#print("mysql.connector.connect(user='username', password='passsword', host='127.0.0.1', database='database_name'")
 class Db_mngmnt(object):
 	def __init__(self, user, password, database, host):
 		self.user = user
