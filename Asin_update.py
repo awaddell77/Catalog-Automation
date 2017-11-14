@@ -188,7 +188,7 @@ class Asin_update:
 			self.__prod_info.append(desc)
 		return self.get_prod_info()
 
-	def create_asins_v2(self, limit = 2):
+	def create_asins_v2(self, limit = 1):
 		#should keep on trying to add the single item
 		self.__retr_lst = []
 		self.__fail_lst = []
