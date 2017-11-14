@@ -7,6 +7,7 @@ from Cat_dbase import *
 from text_l import *
 import time
 from loadJson import *
+import random
 
 class Asin_update:
 	def __init__(self, host ='192.168.5.90', credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt',
