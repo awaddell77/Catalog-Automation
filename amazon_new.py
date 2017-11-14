@@ -1,5 +1,6 @@
 from soupclass8 import *
 import time
+import random
 
 
 class Asin_create(object):
