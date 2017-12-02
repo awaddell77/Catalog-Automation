@@ -140,6 +140,7 @@ class Cat_update(Cat_session):
 		for i in range(0, len(update_items)):
 			go_to_res = self.go_to(update_items[i]["Product Id"])
 			go_to_upd = self.image_update(self.dir_n + update_items[i]["Product Image"])
+			print("Updated {0} (#{1} of {2})".format(str(update_items[i]["Product Id"]), str(i+1), str(len(update_items))))
 			if not go_to_res or not go_to_upd:
 				print("Failed to add item #{0} (\"{1}\")".format(str(i), update_items[i]["Product Image"]))
 				self.__fail_lst.append(update_items[i])

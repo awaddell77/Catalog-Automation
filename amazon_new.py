@@ -65,6 +65,7 @@ class Asin_create(object):
 		#if ch_limit is greater than 0 it will add new characters to end of number
 		#if new number is true and ch_limit is greater than or equal to 1 it will generate a new part code altogether
 		newNumber = ""
+		flip = 0
 		for i in range(0, len(number)):
 			ch = random.randint(64, 123)
 			flip = random.randint(0, 10)

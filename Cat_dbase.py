@@ -186,7 +186,11 @@ class Cat_dbase(Db_mngmnt):
 		return unique_items
 	def update_product(self, p_id, descr, value):
 		print("Updating Product {0} with {1}".format(p_id, value))
-		self.cust_com('UPDATE products SET {0} = \"{1}\" WHERE id = \"{2}\";'.format(descr, value, p_id))
+		if descr in ['barcode', 'asin'] and value.lower() == "null":
+			print("Updating to null")
+			self.cust_com('UPDATE products SET {0} = null WHERE id = \"{1}\";'.format(descr, p_id))
+		else:
+			self.cust_com('UPDATE products SET {0} = \"{1}\" WHERE id = \"{2}\";'.format(descr, value, p_id))
 	def get_dupe_descriptors(self, p_id):
 		#returns duplicate descriptors (i.e. descriptors with the same descriptor ids)
 		#returns [] if there are no duplicates, otherwise it returns a one dimensional list containing the duplicate ids which can be deleted
