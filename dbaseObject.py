@@ -107,6 +107,11 @@ class Db_mngmnt(object):
 		self.con.commit()
 	def copy_row(self, x):
 		pass
+	def delete_row(self, table,  column, value):
+		#deletes single row based upon the value of a specific column
+		#delete_row(id, 5) would delete a single row that had 5 as the value of its id column
+		self.cust_com("DELETE FROM {0} WHERE {1} = \"{2}\";")
+
 	def retr_columns(self, table, dtypes = False):
 		#retrieves the column names, returns them in a list
 		#if dtypes is True then it returns them in a list of tuples (column name, data type)

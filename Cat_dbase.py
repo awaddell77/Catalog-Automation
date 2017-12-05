@@ -191,6 +191,13 @@ class Cat_dbase(Db_mngmnt):
 			self.cust_com('UPDATE products SET {0} = null WHERE id = \"{1}\";'.format(descr, p_id))
 		else:
 			self.cust_com('UPDATE products SET {0} = \"{1}\" WHERE id = \"{2}\";'.format(descr, value, p_id))
+	def delete_prodsugg(self, desc, cat_id):
+		pass
+
+		#deletes a single row based on an id number and a corresponding descriptor
+
+
+
 	def get_dupe_descriptors(self, p_id):
 		#returns duplicate descriptors (i.e. descriptors with the same descriptor ids)
 		#returns [] if there are no duplicates, otherwise it returns a one dimensional list containing the duplicate ids which can be deleted
