@@ -15,6 +15,7 @@ class Cat_dbase(Db_mngmnt):
 		self.__proper_desc = False
 		self.exportData = []
 		self.need_asins = []
+		self.useV2 = False
 
 	def get_cat_contents(self):
 		return self.__cat_contents
@@ -31,6 +32,8 @@ class Cat_dbase(Db_mngmnt):
 		#uses product id only
 		#if base_desc is True then it returns only the non-product type specific descriptors such as asin and manufacturer sku
 		d = {}
+		if self.useV2:
+			return self.get_product2(p_id)
 		res = self.query("SELECT * from products WHERE id = \"{0}\";".format(p_id))
 		if not res:
 			return []
@@ -63,6 +66,29 @@ class Cat_dbase(Db_mngmnt):
 
 
 		return d
+	def get_product2(self, p_id):
+		d = {}
+		res = self.query("SELECT products.name, products.id, descriptors.name, product_descriptors.value,products.barcode, products.manufacturer_sku, products.asin, products.photo_file_name, products.photo_content_type FROM products"
+		+ " INNER JOIN product_descriptors ON products.id = product_descriptors.product_id INNER JOIN descriptors ON descriptors.id WHERE products.id = \"{0}\" AND descriptors.id = product_descriptors.descriptor_id;".format(p_id))
+		d["Product Name"] = res[0][0]
+		d["Product Id"] = res[0][1]
+		d["Product Type"]
+		for i in res:
+			d[i[2]] = i[3]
+			d["Barcode"] = i[4]
+			d["Manufacturer SKU"] = i[5]
+			d["ASIN"] = i[6]
+			d["Product Image"] = i[7] + i[8]
+		columns = list(d.keys())
+		for i in columns:
+			if d[i] is None:
+				d[i] = ''
+		return d
+
+
+
+
+
 	def get_descriptor_name(self, descriptor_id):
 		#takes descriptor id and returns name
 		d_name = self.query("SELECT name FROM descriptors WHERE id = \"{0}\"".format(descriptor_id))
