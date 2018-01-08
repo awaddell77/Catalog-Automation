@@ -72,7 +72,6 @@ class Cat_dbase(Db_mngmnt):
 		+ " INNER JOIN product_descriptors ON products.id = product_descriptors.product_id INNER JOIN descriptors ON descriptors.id WHERE products.id = \"{0}\" AND descriptors.id = product_descriptors.descriptor_id;".format(p_id))
 		d["Product Name"] = res[0][0]
 		d["Product Id"] = res[0][1]
-		d["Product Type"]
 		for i in res:
 			d[i[2]] = i[3]
 			d["Barcode"] = i[4]
