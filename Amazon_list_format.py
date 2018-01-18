@@ -239,7 +239,7 @@ class Amzn_lst_single:
 			d_inst = Im_dwnld(self.__dir)
 			#brackets are there because it needs to be a list
 			d_inst.i_main([d["Image Link"]])
-			image = I_handling(self.__dir + d["Product Image"])
+			image = I_handling(self.__dir + "\\" + d["Product Image"])
 			image.resize((250, 322))
 		return d
 
