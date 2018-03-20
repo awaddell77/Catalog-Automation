@@ -195,6 +195,7 @@ class Amzn_lst_single:
 		d["Product Image"] = self.__values["Product Image"]
 		d["Image Link"] = self.__values["Product Image Link"]
 		d['Description'] = 'Sealed Product from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
+		d["Product Type"] = "Sealed Product"
 		if self.get_d_opt():
 			d_inst = Im_dwnld(self.__dir)
 			#brackets are there because it needs to be a list

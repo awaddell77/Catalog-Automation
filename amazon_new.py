@@ -146,6 +146,10 @@ class Asin_create(object):
 		#clicks back on the vital info tab
 		self.browser.js("document.getElementById('tang_vital_info-tab').click()")
 		time.sleep(1)
+		if x.get("Product Type", "") and x["Product Type"] == ['Sealed Product']: self.sealed_crits(x)
+
+
+
 
 		while not self.browser.is_enabled("main_submit_button"):
 			n += 1
@@ -173,6 +177,9 @@ class Asin_create(object):
 			return True
 		else:
 			return False
+	def sealed_crits(self, x, crits = ['related_product_id',"theme", "genre","skill_level","initial_print_run_rarity","item_part_number","collection_name","specific_uses_for_product"]):
+		for i in crits:
+			self.browser.js("document.getElementById('{0}').value = '{2}'".format(i, prep(x["Product Name"])))
 
 	def add_image(self, x):
 		if "http://" in x:
