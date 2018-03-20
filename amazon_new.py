@@ -146,7 +146,7 @@ class Asin_create(object):
 		#clicks back on the vital info tab
 		self.browser.js("document.getElementById('tang_vital_info-tab').click()")
 		time.sleep(1)
-		if x.get("Product Type", "") and x["Product Type"] == ['Sealed Product']:
+		if x.get("Product Type", "") and x["Product Type"] == 'Sealed Product':
 			print("SEALED PRODUCT TEST")
 			self.sealed_crits(x)
 
@@ -158,7 +158,7 @@ class Asin_create(object):
 			time.sleep(.5)
 			if n >= 20:
 				raise Amazon_Validation_Error("Amazon will not validate {0}".format(x["Product Name"]))
-			if x.get("Product Type", "") and x["Product Type"] == ['Sealed Product']:
+			if x.get("Product Type", "") and x["Product Type"] == 'Sealed Product':
 				print("SEALED PRODUCT TEST")
 				self.sealed_crits(x)
 				time.sleep(5)
