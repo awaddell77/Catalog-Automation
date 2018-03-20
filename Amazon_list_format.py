@@ -106,7 +106,12 @@ class Amzn_lst_single:
 			self.set_keywords('teenage boys')
 			card = self.__swd_form()
 			return card
-
+		elif self.__values['Product Type'] == "Magic Sealed Products":
+			self.set_game('Magic: The Gathering (MTG)')
+			self.set_man("Wizards of the Coast")
+			self.set_keywords('teenage boys')
+			card = self.__mtg_sealed_form()
+			return card
 		else:
 			print("Product Type \"{0}\" is not recognized".format(self.__values["Product Type"]))
 			#TODO fix this, should return same datatype (in this case, a dictionary)
@@ -171,6 +176,24 @@ class Amzn_lst_single:
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG). This is of the ' + self.__values['Rarity'] + ' rarity.'
 		d["Product Image"] = self.__values["Product Image"]
 		d["Image Link"] = self.__values["Product Image Link"]
+		if self.get_d_opt():
+			d_inst = Im_dwnld(self.__dir)
+			#brackets are there because it needs to be a list
+			d_inst.i_main([d["Image Link"]])
+		return d
+	def __mtg_sealed_form(self):
+		d = {}
+		name = "Magic: The Gathering (MTG) - " + self.__values["Product Name"]
+		d["Product Id"] = self.__values['Product Id']
+		d["MSRP"] = str(random.randint(1,301) / 100)
+		d["Manufacturer"] = self.get_man()
+		d["Ages"] = self.get_ages()
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
+		d["Product Image"] = self.__values["Product Image"]
+		d["Image Link"] = self.__values["Product Image Link"]
+		d['Description'] = 'Sealed Product from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		if self.get_d_opt():
 			d_inst = Im_dwnld(self.__dir)
 			#brackets are there because it needs to be a list
