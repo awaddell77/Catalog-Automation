@@ -183,9 +183,11 @@ class Asin_create(object):
 			return True
 		else:
 			return False
-	def sealed_crits(self, x, crits = ['related_product_id',"theme", "genre","skill_level","initial_print_run_rarity","item_part_number","collection_name","specific_uses_for_product"]):
+	def sealed_crits(self, x, crits = ["theme", "genre","skill_level","initial_print_run_rarity","item_part_number","collection_name","specific_uses_for_product"]):
+		#'related_product_id' was removed
 		for i in crits:
-			self.browser.js("document.getElementById('{0}').value = '{1}'".format(i, prep(x["Product Name"])))
+			#self.browser.js("document.getElementById('{0}').value = 'MTG'".format(i, prep(x["Product Name"])))
+			self.browser.js("document.getElementById('{0}').value = 'MTG18'".format(i))
 
 	def add_image(self, x):
 		if "http://" in x:
