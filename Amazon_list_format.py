@@ -184,6 +184,7 @@ class Amzn_lst_single:
 	def __mtg_sealed_form(self):
 		d = {}
 		name = "Magic: The Gathering (MTG) - " + self.__values["Product Name"]
+		d['Product Name'] = name
 		d["Product Id"] = self.__values['Product Id']
 		d["MSRP"] = str(random.randint(1,301) / 100)
 		d["Manufacturer"] = self.get_man()
