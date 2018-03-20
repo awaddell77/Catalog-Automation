@@ -92,10 +92,10 @@ class Asin_create(object):
 
 
 
-	def add_single(self, x ):
+	def add_single(self, x, t_url = "https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES" ):
 		start_time = time.time()
 		n = 0
-		self.browser.go_to("https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES")
+		self.browser.go_to(t_url)
 		#name
 		self.browser.js("document.getElementById('item_name').value = '{0}'".format(prep(x["Product Name"])))
 		#manufacturer
