@@ -369,6 +369,7 @@ class Asin_update:
 			self.create_asins_v2()
 		else:
 			self.create_asins()
+		time.sleep(15)
 		self.amazon_inst.go_to_search_page()
 
 		#retrieves and then updates the ASIN descriptors in the catalog

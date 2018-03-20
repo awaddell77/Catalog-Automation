@@ -161,7 +161,11 @@ class Asin_create(object):
 			if x.get("Product Type", "") and x["Product Type"] == 'Sealed Product':
 				print("SEALED PRODUCT TEST")
 				self.sealed_crits(x)
-				time.sleep(5)
+				time.sleep(1)
+				self.browser.js("document.getElementById('tang_description-tab').click()")
+				time.sleep(1)
+				self.browser.js("document.getElementById('tang_vital_info-tab').click()")
+				time.sleep(3)
 		if self.browser.is_enabled("main_submit_button"):
 			#this is for testing only
 			self.browser.js("document.getElementById('main_submit_button').click()")
