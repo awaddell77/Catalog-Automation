@@ -13,7 +13,7 @@ class Amzn_lst_single:
 		self.__dir = "C:\\Users\\Owner\\Desktop\\I\\"
 		self.__d_opt = True
 		self.__keywords = 'teenage boys'
-		self.part_number = values.get("Card Number", random.randint(0, 100))
+		self.part_number = values.get("Card Number", str(random.randint(0, 100)))
 		if not isinstance(self.__values, dict):
 			raise TypeError("Param must be dictionary.")
 		self.__cat_form = False
