@@ -106,7 +106,7 @@ class Amzn_lst_single:
 			self.set_keywords('teenage boys')
 			card = self.__swd_form()
 			return card
-		elif self.__values['Product Type'] == "Magic Sealed Products":
+		elif self.__values['Product Type'] == "Magic Products":
 			self.set_game('Magic: The Gathering (MTG)')
 			self.set_man("Wizards of the Coast")
 			self.set_keywords('teenage boys')
