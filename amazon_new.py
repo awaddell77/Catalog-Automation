@@ -185,7 +185,7 @@ class Asin_create(object):
 			return False
 	def sealed_crits(self, x, crits = ['related_product_id',"theme", "genre","skill_level","initial_print_run_rarity","item_part_number","collection_name","specific_uses_for_product"]):
 		for i in crits:
-			self.browser.js("document.getElementById('{0}').value = '{2}'".format(i, prep(x["Product Name"])))
+			self.browser.js("document.getElementById('{0}').value = '{1}'".format(i, prep(x["Product Name"])))
 
 	def add_image(self, x):
 		if "http://" in x:
