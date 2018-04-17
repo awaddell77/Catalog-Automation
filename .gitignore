@@ -92,3 +92,9 @@ date_script.py
 date_range_select.py
 date_select_script.py
 *.p
+AllSets.json
+barcode_11-14.txt
+.vs/VSWorkspaceState.json
+.vs/ProjectSettings.json
+.vs/Catalog-Automation/v15/.suo
+.vs/slnx.sqlite

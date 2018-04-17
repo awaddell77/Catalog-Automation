@@ -56,8 +56,8 @@ class Amzn_lst_single:
 	def form(self):
 		#need to have special 'filter' that prevents promo cards from getting their category names added to their amazon listing names
 		if self.__values["Product Type"] == 'Yu-Gi-Oh Singles':
-			self.set_game('Yu-Gi-Oh')
-			self.set_man('yu-gi-oh')
+			self.set_game('Yu-Gi-Oh!')
+			self.set_man('Yu-Gi-Oh!')
 			self.set_keywords('teenage boys')
 			card = self.__ygo_form()
 			return card
