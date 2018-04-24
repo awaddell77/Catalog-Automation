@@ -130,6 +130,7 @@ class Amzn_lst_single:
 		d["Product Name"] = full_name
 		d["Product Id"] = self.__values['Product Id']
 		d["MSRP"] = str(random.randint(1,301) / 100)
+		d['Brand'] = self.get_game()
 		d["Manufacturer"] = self.get_man()
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()

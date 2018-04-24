@@ -1,6 +1,7 @@
 from soupclass8 import *
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 import getpass
 import sys, re
 import time
@@ -26,7 +27,8 @@ class Cat_session(object):#parent class for this pseudo-API
 		self.args = args
 		self.__del_items = []
 	def start_browser(self):
-		self.driver = webdriver.Firefox()
+		binary = FirefoxBinary('C:\\Program Files\\Mozilla FirefoxSel\\firefox.exe')
+		self.driver = webdriver.Firefox(firefox_binary=binary)
 	def get_del_items(self):
 		return self.__del_items
 	def set_del_items(self, x):
@@ -708,6 +710,9 @@ def dictionarify(x):
 	item = C_sort(x)
 	items = item.contents
 	crit = item.contents[0]
+	while True and '' in crit:
+		crit.remove('')
+		print("TEST")
 	results = []
 	for i in range(1, len(items)):
 		d = dict.fromkeys(crit, 0)
@@ -825,12 +830,8 @@ def dupeCheck(x):
 
 
 def add_preorders(x, dupe_check = True):
-	cat_inst = Cat_product_add()
-	cat_inst.set_dupe_check(dupe_check)
-	cat_inst.start_browser()
-	time.sleep(3)
-	cat_inst.start()
 	image_check = dictionarify(x)
+	if '' in list(image_check[0].keys()): print("EMPTY COLUMN FOUND") 
 	for i in image_check:
 		check = i["Product Image"]
 		check = i["Product Name"]
@@ -839,6 +840,11 @@ def add_preorders(x, dupe_check = True):
 			i["Year"]
 		except KeyError:
 			i["Year"] = str(time.localtime()[0])
+	cat_inst = Cat_product_add()
+	cat_inst.set_dupe_check(dupe_check)
+	cat_inst.start_browser()
+	time.sleep(3)
+	cat_inst.start()
 	cat_inst.fname = dictionarify(x)
 	cat_inst.add_prod_cat_batch()
 	items = cat_inst.get_addlst()
@@ -855,7 +861,8 @@ def add_preorders(x, dupe_check = True):
 			else:
 				print("Added {0} to database.".format(i["Product Name"]))
 
-	return "Complete"
+	print("Complete")
+	cat_inst.driver.quit()
 def add_items(x, session = ''):
 	if session != '':
 		cat_inst = session
