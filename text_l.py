@@ -5,7 +5,7 @@ def text_l(x, mode='utf-8'):#reads text file, returns list of elements
         data = f.readlines()
         for line in data:
             words = line.split()
-            print(words)
+            #print(words)
             l.extend(words)
-        print(l)
+        #print(l)
         return l

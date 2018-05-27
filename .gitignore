@@ -82,3 +82,19 @@ csv_export2.py
 export_csv3.py
 TEST DIR/1113206.jpg
 barcodes_6-7.txt
+testsave.p
+Amazon_script_local.py
+credFile.json
+warhammer1.txt
+warhammer2.txt
+*.xlsx
+date_script.py
+date_range_select.py
+date_select_script.py
+*.p
+AllSets.json
+barcode_11-14.txt
+.vs/VSWorkspaceState.json
+.vs/ProjectSettings.json
+.vs/Catalog-Automation/v15/.suo
+.vs/slnx.sqlite

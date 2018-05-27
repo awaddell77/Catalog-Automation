@@ -1,6 +1,7 @@
 from soupclass8 import *
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 import getpass
 import sys, re
 import time
@@ -10,22 +11,24 @@ from Imprt_csv import *
 from Cat_dbase import *
 from d_copy import *
 
-text_cred = text_l('C:\\Users\\Owner\\Documents\\Important\\catcred.txt')
+
 class Cat_session(object):#parent class for this pseudo-API
-	def __init__(self, *args):
-		#self.username = input('Username:') 
+	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt', host = '192.168.5.90', credFile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt',*args):
+		self.text_cred = text_l(credFile)
+		#self.username = input('Username:')
 		#self.password = getpass.getpass('Password:')
-		self.username = text_cred[0]
-		self.password = text_cred[1]
+		self.username = self.text_cred[0]
+		self.password = self.text_cred[1]
 		self.driver = ''
-		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'preorders', '192.168.5.90')
-		self.cat_dbase = Cat_dbase()
+		self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'preorders', '192.168.5.90')
+		self.cat_dbase = Cat_dbase(credFile2)
 		#in the future allow the user to select which browser to use (would need to make this a child of a parent that did that)
 		#self.driver = webdriver.PhantomJS()
 		self.args = args
 		self.__del_items = []
 	def start_browser(self):
-		self.driver = webdriver.Firefox()
+		binary = FirefoxBinary('C:\\Program Files\\Mozilla FirefoxSel\\firefox.exe')
+		self.driver = webdriver.Firefox(firefox_binary=binary)
 	def get_del_items(self):
 		return self.__del_items
 	def set_del_items(self, x):
@@ -168,7 +171,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		categories = self.driver.execute_script('document.getElementsByClassName("select required select2 wide-category-select")[0].children')
 		#clicks on the drop down menu
 		self.driver.execute_script('document.getElementsByClassName("select2-offscreen select2-focusser")[0].click();')
-		#once the menu has been clicked the options are now visible 
+		#once the menu has been clicked the options are now visible
 
 
 
@@ -237,7 +240,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		image_link_element = image_rows[0].find('a',{'class':'thumbnail'})
 		image_link = 'https:' + S_format(str(image_link_element)).linkf('href=').split('?')[0]
 		d["Product Image Link"] = image_link
-		d["Product Image"] = fn_grab(image_link) 
+		d["Product Image"] = fn_grab(image_link)
 		table = pi_page.find('table')
 		rows = table.find_all('tr')
 		for i in range(0, len(rows)):
@@ -260,7 +263,7 @@ class Cat_session(object):#parent class for this pseudo-API
 		self.driver.refresh()
 
 
-	def b_grab(self, t_class, attribute, value): 
+	def b_grab(self, t_class, attribute, value):
 		#allows you to select a specific button given its class, attribute and that attribute's value
 		items = self.driver.execute_script('return document.getElementsByClassName(%s)' % ('"' + t_class + '"'))
 		if items == []:
@@ -316,7 +319,7 @@ class Cat_session(object):#parent class for this pseudo-API
 class S_results(object):#should probably be made a child of Cat_session once it is completed
 	def __init__(self, site):#takes a webdriver object as site, calls its page_source method and then parses it through bs
 		self.site = site.source() #turns the source into bsObject
-		self.bsObject = bs(self.site, 'lxml') 
+		self.bsObject = bs(self.site, 'lxml')
 
 
 	def table_results_s(self):#returns the results on a singles results page in the catalog
@@ -388,7 +391,7 @@ class Cat_product_add(Cat_session):
 		items = self.get_addlst()
 		for i in items:
 			data_fields = []
-			for i_2 in data: #take out of loop if speed becomes an issue 
+			for i_2 in data: #take out of loop if speed becomes an issue
 				data_fields.append[i[i_2]]
 			try:
 				self.dbase_add(data_fields, columns, dbase, table)
@@ -401,7 +404,7 @@ class Cat_product_add(Cat_session):
 		items = self.get_tba_list()
 		for i in items:
 			data_fields = []
-			for i_2 in data: #take out of loop if speed becomes an issue 
+			for i_2 in data: #take out of loop if speed becomes an issue
 				data_fields.append(i[i_2])
 			try:
 				self.dbase_add(data_fields, columns, dbase, table)
@@ -435,8 +438,8 @@ class Cat_product_add(Cat_session):
 			#this is here to prevent the product name from being added before the page is finished loading
 			time.sleep(.1)
 		start = self.driver.current_url
-		
-		
+
+
 		keys = list(attrs.keys())
 		if "Product Name" not in keys:
 			raise Crit_not_present("Product Name desciptor not found")
@@ -479,7 +482,7 @@ class Cat_product_add(Cat_session):
 		product_id = fn_grab(final_url)
 		attrs["Product Id"] = product_id
 		self.__add_list.append(attrs) #adds attrs to __add_list
-		entry_maker([attrs["Product Name"]]) 
+		entry_maker([attrs["Product Name"]])
 		dbase_info = ''
 		#creates a log entry for the product (ideally this should happen in bulk after all items have been added)
 		print(attrs)#only for testing
@@ -672,7 +675,7 @@ class Cat_product_add(Cat_session):
 		value = str(value).strip(' ')
 		value = re.sub("'", "\\\'",  value)
 		value = re.sub('"', '\\\"', value)
-		#print("Attempting to set {0} to \"{1}\"".format(str(crit), str(value)))
+		print("Attempting to set {0} to \"{1}\"".format(str(crit), str(value)))
 
 		command = '''
 			var p_type = document.getElementsByTagName('legend')[0].innerHTML;
@@ -687,7 +690,7 @@ class Cat_product_add(Cat_session):
 				}}
 				else if (ind_item.includes('{0}') && items[i].nextElementSibling.children[0].value == '') {{
 					var t_item  = items[i].nextElementSibling.children[0];
-					t_item.value = '{1}' ; 
+					t_item.value = '{1}' ;
 				}}
 				}}
 			'''.format(crit, value)
@@ -707,6 +710,9 @@ def dictionarify(x):
 	item = C_sort(x)
 	items = item.contents
 	crit = item.contents[0]
+	while True and '' in crit:
+		crit.remove('')
+		print("TEST")
 	results = []
 	for i in range(1, len(items)):
 		d = dict.fromkeys(crit, 0)
@@ -762,7 +768,7 @@ def descriptor_get(x):
 	image_link_element = image_rows[0].find('a',{'class':'thumbnail'})
 	image_link = 'https:' + S_format(str(image_link_element)).linkf('href=').split('?')[0]
 	d["Product Image Link"] = image_link
-	d["Product Image"] = fn_grab(image_link) 
+	d["Product Image"] = fn_grab(image_link)
 	table = pi_page.find('table')
 	rows = table.find_all('tr')
 	for i in range(0, len(rows)):
@@ -805,7 +811,7 @@ def j_script(x,target, atr_val):
 			else{
     			console.log("DID NOT FIND IT");
 			}}'''
-			
+
 
 def add_barcodes(bcodes):
 	x = Cat_product_add()
@@ -814,15 +820,18 @@ def add_barcodes(bcodes):
 		x.dbase_add(info, ["barcode", "date_added"], "asins", "barcodes")
 	print("Done")
 	x = ''
+def dupeCheck(x):
+	cat_inst = Cat_product_add()
+	cat_inst.set_dupe_check(True)
+	data = dictionarify(x)
+	res = cat_inst.cat_dupe_check(data)
+	return res
+
 
 
 def add_preorders(x, dupe_check = True):
-	cat_inst = Cat_product_add()
-	cat_inst.set_dupe_check(dupe_check)
-	cat_inst.start_browser()
-	time.sleep(3)
-	cat_inst.start()
 	image_check = dictionarify(x)
+	if '' in list(image_check[0].keys()): print("EMPTY COLUMN FOUND") 
 	for i in image_check:
 		check = i["Product Image"]
 		check = i["Product Name"]
@@ -831,6 +840,11 @@ def add_preorders(x, dupe_check = True):
 			i["Year"]
 		except KeyError:
 			i["Year"] = str(time.localtime()[0])
+	cat_inst = Cat_product_add()
+	cat_inst.set_dupe_check(dupe_check)
+	cat_inst.start_browser()
+	time.sleep(3)
+	cat_inst.start()
 	cat_inst.fname = dictionarify(x)
 	cat_inst.add_prod_cat_batch()
 	items = cat_inst.get_addlst()
@@ -842,12 +856,13 @@ def add_preorders(x, dupe_check = True):
 			try:
 				cat_inst.dbase_add(info, columns, 'preorders','adds' )
 			except:
-				
+
 				print("Failed to add {0}".format(i["Product Name"]))
 			else:
 				print("Added {0} to database.".format(i["Product Name"]))
 
-	return "Complete"
+	print("Complete")
+	cat_inst.driver.quit()
 def add_items(x, session = ''):
 	if session != '':
 		cat_inst = session

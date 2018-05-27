@@ -1,10 +1,11 @@
 from soupclass8 import *
 import time
+import random
 
 
 class Asin_create(object):
 	def __init__(self, p_list='', dir_n ="C:\\Users\\Owner\\Desktop\\I\\", *args):
-		self.dir_n = dir_n
+		self.__dir_n = dir_n
 		#self.p_list = conv_to_dict(p_list, self.dir_n)
 		#self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'asins', '192.168.5.90')
 		self.p_list = []
@@ -13,7 +14,16 @@ class Asin_create(object):
 		#self.header = r_csv_2(p_list, mode = 'rb', encoding = 'ISO-8859-1' )[0]
 		self.asins = []
 		self.__fail_lst = []
-		self.merch_ids = text_l("C:\\Users\\Owner\\Documents\\Important\\amazon_creds.txt")
+		#self.merch_ids = text_l("C:\\Users\\Owner\\Documents\\Important\\amazon_creds.txt")
+		self.merch_ids = ['000', '111']
+		self.csv_dir = ''
+		#if abort_delay is True add_single(x) method won't wait 30 seconds to return an error
+		self.abort_delay = True
+		self.d_dir = "C:\\Users\\Owner\\Catalog-Automation\\Dump"
+	def set_dir(self, x):
+		self.__dir_n = x
+	def get_dir(self):
+		return self.__dir_n
 
 	def get_p_lst(self):
 		return self.p_list
@@ -21,7 +31,7 @@ class Asin_create(object):
 		self.p_lst = x
 	def toggle_mkt(self, x):
 		if x in ['magic', 'Magic', 'mtg', 'MTG']:
-			command = """ 
+			command = """
 				var magic_opt = '/merchant-picker/change-merchant?url=%2F&marketplaceId={0}&merchantId={1}"'
 				for (i = 0 ; i < document.getElementById('sc-mkt-picker-switcher-select').children.length ; i++){
 					if (document.getElementById('sc-mkt-picker-switcher-select').children[i].children[0] == magic_opt){
@@ -33,6 +43,7 @@ class Asin_create(object):
 		#not finished
 	def go_to_search_page(self):
 		self.browser.go_to("https://sellercentral.amazon.com/inventory/")
+		time.sleep(1)
 		if self.load_check('inventory'):
 			time.sleep(.5)
 
@@ -49,17 +60,51 @@ class Asin_create(object):
 		return self.asins
 	def set_asins(self, x):
 		self.asins = x
+	def pn_randomizer(self, number, ch_limit = 0, new_number = True):
+		#generates random part code for amazon
+		#if ch_limit is greater than 0 it will add new characters to end of number
+		#if new number is true and ch_limit is greater than or equal to 1 it will generate a new part code altogether
+		newNumber = ""
+		flip = 0
+		for i in range(0, len(number)):
+			ch = random.randint(64, 123)
+			flip = random.randint(0, 10)
+			if flip > 5 and ch not in [64, 123] and ch not in range(91, 97):
+				newNumber += chr(ch)
+			else:
+				newNumber += str(number[i])
+		if ch_limit >= 1:
+			newNumber = ""
+			#print("TESTING")
+			for i in range(0, ch_limit):
+				ch = random.randint(64, 123)
+				if flip > 2 and ch not in [64, 123] and ch not in range(91, 97):
+					newNumber += chr(ch)
+				elif flip > 2 and flip <= 5:
+					newNumber += chr(random.randint(97, 123))
+				else:
+					newNumber += str(random.randint(1,9))
+			if new_number:
+				return newNumber
+			else:
+				return number + newNumber
+		return newNumber
 
-	def add_single(self, x, dir_n = "C:\\Users\\Owner\\Desktop\\I\\" ):
+
+
+	def add_single(self, x, t_url = "https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES" ):
 		start_time = time.time()
 		n = 0
-		self.browser.go_to("https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES")
+		self.browser.go_to(t_url)
 		#name
 		self.browser.js("document.getElementById('item_name').value = '{0}'".format(prep(x["Product Name"])))
 		#manufacturer
 		self.browser.js("document.getElementById('manufacturer').value = '{0}'".format(prep(x["Manufacturer"])))
 		#brand name
 		self.browser.js("document.getElementById('brand_name').value = '{0}'".format(prep(x["Manufacturer"])))
+		#manufacturer part number
+		x["Part Number"] = self.pn_randomizer(x["Part Number"], 2, False)
+		self.browser.js("document.getElementById('part_number').value = '{0}'".format(prep(x["Part Number"])))
 		#minimum age
 		self.browser.js("document.getElementById('mfg_minimum').value = '{0}'".format(prep(x["Ages"])))
 		#minimum age units
@@ -85,7 +130,7 @@ class Asin_create(object):
 		self.browser.js("document.getElementById('image-tab').click()")
 		time.sleep(1)
 		#Image
-		self.add_image(x["Product Image"], dir_n)
+		self.add_image(x["Product Image"])
 		time.sleep(5)
 		#switch over to Description tab
 		self.browser.js("document.getElementById('tang_description-tab').click()")
@@ -101,38 +146,61 @@ class Asin_create(object):
 		#clicks back on the vital info tab
 		self.browser.js("document.getElementById('tang_vital_info-tab').click()")
 		time.sleep(1)
+		if x.get("Product Type", "") and x["Product Type"] == 'Sealed Product':
+			print("SEALED PRODUCT TEST")
+			self.sealed_crits(x)
+
+
+
 
 		while not self.browser.is_enabled("main_submit_button"):
 			n += 1
 			time.sleep(.5)
 			if n >= 20:
 				raise Amazon_Validation_Error("Amazon will not validate {0}".format(x["Product Name"]))
+			if x.get("Product Type", "") and x["Product Type"] == 'Sealed Product':
+				print("SEALED PRODUCT TEST")
+				self.sealed_crits(x)
+				time.sleep(1)
+				self.browser.js("document.getElementById('tang_description-tab').click()")
+				time.sleep(1)
+				self.browser.js("document.getElementById('tang_vital_info-tab').click()")
+				time.sleep(3)
 		if self.browser.is_enabled("main_submit_button"):
 			#this is for testing only
 			self.browser.js("document.getElementById('main_submit_button').click()")
 			print("CLICKED THE SUBMIT BUTTON!")
 			load_check_abort = 0
 			#has to wait for the page to transition to the seller central page
+			print("Waiting for sellercentral page", end='')
 			while self.load_check('sellercentral'):
-				print("Waiting for sellercentral page")
+				print(".", end='')
 				load_check_abort += 1
 				time.sleep(1)
-				if load_check_abort > 30:
+				#TODO add else statment, right now if self.abort_delay is false it gets stuck in a permanent loop
+				if load_check_abort > 12 and self.abort_delay:
+					print()
 					raise RuntimeError("Amazon either took too long to respond or objected to the item.")
+			print()
 			print("Found sellarcentral page. Process took {0} seconds.".format(time.time() - start_time))
 
 			return True
 		else:
 			return False
+	def sealed_crits(self, x, crits = ["theme", "genre","skill_level","initial_print_run_rarity","item_part_number","collection_name","specific_uses_for_product"]):
+		#'related_product_id' was removed
+		for i in crits:
+			#self.browser.js("document.getElementById('{0}').value = 'MTG'".format(i, prep(x["Product Name"])))
+			self.browser.js("document.getElementById('{0}').value = 'MTG18'".format(i))
 
-	def add_image(self, x, dir_n= "C:\\Users\\Owner\\Desktop\\I\\"):
+	def add_image(self, x):
 		if "http://" in x:
 			x = fn_grab(x)
-		x =  dir_n + x
+		x =  self.get_dir() + x
 
 		self.browser.js("return document.getElementById('Parent-ProductImage_MAIN-div').children[2].getElementsByTagName('input')[10]").send_keys(x)
-	def update_single(self, x, dir_n = "C:\\Users\\Owner\\Desktop\\I\\" ):
-		self.browser.go_to("https://catalog.amazon.com/abis/product/DisplayEditProduct?marketplaceID=ATVPDKIKX0DER&ref=xx_myiedit_cont_myifba&sku={0}&asin={1}".format(x["Product Id"], x['asin'], self.merch_ids[0]))
+	def update_single(self, x ):
+		#self.browser.go_to("https://catalog.amazon.com/abis/product/DisplayEditProduct?marketplaceID=ATVPDKIKX0DER&ref=xx_myiedit_cont_myifba&sku={0}&asin={1}".format(x["Product Id"], x['asin'], self.merch_ids[0]))
 		#updates name
 		self.browser.js("document.getElementById('item_name').value = '{0}'".format(prep(x["Product Name"])))
 		#clicks over to image tab to update image
@@ -141,14 +209,14 @@ class Asin_create(object):
 		#removes the image
 		self.browser.js("document.getElementById('Parent-ProductImage_MAIN-div').children[2].getElementsByTagName('button')[0].click()")
 		#adds new image
-		self.add_image(x["Product Image"], dir_n)
+		self.add_image(x["Product Image"], self.get_dir())
 		#updates description
 		self.browser.js("document.getElementById('product_description').value = '{0}'".format(prep(x["Description"])))
 
 		while not self.browser.is_enabled("main_submit_button"):
 			n += 1
 			time.sleep(.5)
-			if n >= 20:
+			if n >= 30:
 				raise Amazon_Validation_Error("Amazon will not validate {0}".format(x["Product Name"]))
 		if self.browser.is_enabled("main_submit_button"):
 			#this is for testing only
@@ -163,14 +231,18 @@ class Asin_create(object):
 				if load_check_abort > 30:
 					raise RuntimeError("Amazon either took too long to respond or objected to the item.")
 			print("Found sellarcentral page. Process took {0} seconds.".format(time.time() - start_time))
+			#TODO return error if the Amazon returns the "website temporarily unavailable" page
 
 			return True
 		else:
 			return False
+	def source(self):
+		return self.browser.source()
 
 
 
-	def add_csv(self, dir_n = "C:\\Users\\Owner\\Desktop\\I\\"):
+	def add_csv(self):
+		dir_n = self.csv_dir
 		succ_list = [self.header]
 		fail_list = [self.header]
 		for i in range(0, len(self.p_list)):
@@ -203,17 +275,17 @@ class Asin_create(object):
 					fail_list.append(S_format(self.p_list[i]).d_sort(self.header))
 
 			time.sleep(1)
-		w_csv(succ_list, "SUCCESS LIST.csv")
-		w_csv(fail_list, "FAILED ADDS.csv")
+		w_csv(succ_list , self.d_dir + "SUCCESS LIST.csv")
+		w_csv(fail_list, self.d_dir + "FAILED ADDS.csv")
 	def retrieve_asins(self):
 		for i in range(0, len(self.p_list)):
 
 			self.asins.append(self.grab_asin(self.p_list[i]["Product Id"]))
-		w_csv(self.asins, "ASIN_list.csv")
+		w_csv(self.asins, self.d_dir + "ASIN_list.csv")
 	def grab_asin(self, name1):
 		wait = 3
 		#retrieves ASIN that has already been created. Need product id.
-		#name == Product Id or Item Sku on Amazon 
+		#name == Product Id or Item Sku on Amazon
 		#needs to be on the "Manage Inventory" page
 		#name = re.sub("'", "39;", name) #used to be \\'
 		try:
@@ -252,7 +324,7 @@ class Asin_create(object):
 		else:
 			return False
 def barcode_handling(x):
-	d = x 
+	d = x
 	d["Barcode"] = '[' + str(d["Barcode"])
 	return d
 

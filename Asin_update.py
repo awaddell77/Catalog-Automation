@@ -4,19 +4,26 @@ from Cat_update import *
 from amazon_new import *
 from Amazon_list_format import *
 from Cat_dbase import *
+from text_l import *
 import time
-####################DEPRECATED DO NOT USE
+from loadJson import *
+import random
+
 class Asin_update:
-	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt', *args):
+	def __init__(self, host ='192.168.5.90', credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt',
+		credFile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt',*args):
+		self.jData = loadJson('credFile.json')
 		#database connection
-		self.text_cred = text_l(text_cred)
-		self.dbObject = Db_mngmnt(text_cred[2],text_cred[3],'asins', '192.168.5.90')
+		self.text_cred = text_l(credFile)
+		#self.dbObject = Db_mngmnt(self.text_cred[2], self.text_cred[3],'asins', host)
+		self.dbObject = Db_mngmnt(self.jData['DB_Username'], self.jData['DB_Password'], 'asins', self.jData['DB_IP'])
 		#catalog database connection
-		self.cat_obj = Cat_dbase()
+		#TODO add way to use different credentials using arguments in Cat_dbase and Asin_update
+		self.cat_obj = Cat_dbase(credFile2)
 		#makes object return the product information dicts with the proper key names
 		self.cat_obj.set_proper_desc(True)
 		#catalog update instance
-		self.cat_update_inst = Cat_update()
+		self.cat_update_inst = Cat_update(credFile, credFile2)
 		#amazon connection
 		self.amazon_inst = Asin_create()
 		#product information
@@ -36,6 +43,10 @@ class Asin_update:
 		#
 		self.__keep_live_check = time.time()
 		self.asin_create_timer = 0
+		self.retryCreate = True
+		self.attemptDelay = False
+		self.timeEstimate = 48
+		self.t_url = "https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES"
 	def start_up_all(self):
 		#self.cat_update_inst.start()
 		self.amazon_inst.start()
@@ -46,6 +57,11 @@ class Asin_update:
 				break
 			elif (time.time() - amazon_counter) >= 30:
 				raise RuntimeError("You need to log in to the seller central account in the Amazon instance.")'''
+	def standBy(self, interval= 30):
+		print("On standby")
+		while(True):
+			time.sleep(interval)
+			self.amazon_inst.browser.refresh()
 	def get_prod_info(self):
 		return self.__prod_info
 	def set_prod_info(self, x):
@@ -166,6 +182,7 @@ class Asin_update:
 			#self.cat_update_inst.prod_go_to(p_ids[i])
 			prod_info = self.cat_obj.get_product(p_ids[i])
 			desc = Amzn_lst_single(prod_info)
+			desc.set_dir(self.jData['Photo_Dir'])
 			desc.set_d_opt(get_images)
 			desc = desc.form()
 			#desc = Amzn_lst_single(self.cat_update_inst.descriptor_get()).form()
@@ -173,8 +190,92 @@ class Asin_update:
 			self.__prod_info.append(desc)
 		return self.get_prod_info()
 
+	def create_asins_v2(self, limit = 1):
+		#should keep on trying to add the single item
+		self.__retr_lst = []
+		self.__fail_lst = []
+		start = time.time()
+		count = 1
+		n_limit = 0
+		kI = False
+
+		for i in self.__prod_info:
+
+			while True and not kI:
+				if self.attemptDelay: time.sleep(30)
+				if n_limit > limit:
+					print("Retried {0} times with no success".format(limit))
+					n_limit = 0
+					count += 1
+					break
+				try:
+					print("Attempting {0}. #{1} of {2}".format(i["Product Name"],count, len(self.__prod_info)))
+				except UnicodeEncodeError as UE:
+					print("UnicodeEncodeError on #{0} of {1}. Proceeding with ASIN creation".format(count, len(self.__prod_info)))
+
+				try:
+					res = self.amazon_inst.add_single(i, self.t_url)
+				except Amazon_Validation_Error as AVE: #untested
+					print("Error occurred:")
+					print(AVE)
+					print("Trying again but with EAN")
+					try:
+						i["Barcode Type"] = self.switch_bcode_type(i["Barcode Type"])
+						res = self.amazon_inst.add_single(i,self.t_url)
+					except Amazon_Validation_Error as AVE:
+						self.__fail_lst.append(i)
+						#count += 1
+						n_limit += 1
+
+
+
+					except:
+						print("General Error Occurred with {0}".format(i["Product Name"]))
+						print(sys.exc_info()[:])
+						self.__fail_lst.append(i)
+						#count += 1
+						n_limit += 1
+						#break
+
+				except RuntimeError as RE:
+					#while not res and n_limit < limit:
+					if self.AmazonUnavailable():
+						#res = self.amazon_inst.add_single(i)
+						n_limit += 1
+
+
+				except KeyboardInterrupt as KI:
+					kI = True
+					break
+
+				except:
+					#general
+
+					print("General Error Occurred with {0}".format(i["Product Name"]))
+					print(sys.exc_info()[:])
+					self.__fail_lst.append(i)
+					count += 1
+					break
+
+				else:
+					if res:
+						self.__retr_lst.append(i)
+						count += 1
+						break
+					else:
+						self.__fail_lst.append(i)
+						count += 1
+
+		#duration = time.time() - self.asin_create_timer()
+		#print("Process took {0} seconds to complete.".format(duration))
+		end = time.time()
+		duration = end - start
+		print("{0} ASINs were created. Failed to create: {1}".format(len(self.__retr_lst), len(self.__fail_lst)))
+		print("ASIN creation process took {0} seconds".format(duration))
+
 	def create_asins(self):
 		self.__retr_lst = []
+		self.__fail_lst = []
 		start = time.time()
 		count = 1
 		for i in self.__prod_info:
@@ -184,15 +285,20 @@ class Asin_update:
 				print("UnicodeEncodeError on #{0} of {1}. Proceeding with ASIN creation".format(count, len(self.__prod_info)))
 
 			try:
-				res = self.amazon_inst.add_single(i)
+				res = self.amazon_inst.add_single(i, self.t_url)
 			except Amazon_Validation_Error as AVE: #untested
 				print("Error occurred:")
 				print(AVE)
 				print("Trying again but with EAN")
 				try:
 					i["Barcode Type"] = self.switch_bcode_type(i["Barcode Type"])
-					res = self.amazon_inst.add_single(i)
+					res = self.amazon_inst.add_single(i,self.t_url)
 				except Amazon_Validation_Error as AVE:
+					self.__fail_lst.append(i)
+					count += 1
+				except:
+					print("General Error Occurred with {0}".format(i["Product Name"]))
+					print(sys.exc_info()[:])
 					self.__fail_lst.append(i)
 					count += 1
 			except KeyboardInterrupt as KI:
@@ -220,6 +326,7 @@ class Asin_update:
 		print("{0} ASINs were created. Failed to create: {1}".format(len(self.__retr_lst), len(self.__fail_lst)))
 		print("ASIN creation process took {0} seconds".format(duration))
 	def asin_create_m_cats(self, cats):
+		self.t_url = "https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES"
 		p_ids = []
 		self.cat_obj.reconnect()
 		self.dbObject.reconnect()
@@ -233,12 +340,43 @@ class Asin_update:
 		#creates the proper dicts for amazon submission
 		self.get_descriptions()
 		#creates the asins
-		self.create_asins()
+		amountOfItems = len(self.get_prod_info())
+		print("{0} items retrieved. Process will take around {1} minute(s)".format(amountOfItems, (amountOfItems * self.timeEstimate) / 60))
+		if self.retryCreate:
+			#calls method that tries to create amazon listing several more times if it errors out the first time
+			self.create_asins_v2()
+		else:
+			self.create_asins()
 		self.amazon_inst.go_to_search_page()
 
 		#retrieves and then updates the ASIN descriptors in the catalog
 		#also deletes the barcodes that were used from the barcode table in the database
 		self.get_asins()
+	def asin_create_s_sp(self, p_ids):
+		#for individual sealed product
+		if not isinstance(p_ids, list): raise TypeError("p_ids must be list")
+		self.cat_obj.reconnect()
+		self.dbObject.reconnect()
+		self.t_url = "https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=trading-card-games&productType=COLLECTIBLE_CARD&newCategory=622892011/623195011/623204011/485125011&displayPath=All%20Product%20Categories%2FToys%20%26%20Games%2FGames%2FTrading%20Card%20Games%2FBooster%20Packs&recommendedBrowseNodeId=485125011&itemName="
+		self.set_id_create_queue(p_ids)
+		#creates the proper dicts for amazon submission
+		self.get_descriptions()
+		#creates the asins
+		amountOfItems = len(self.get_prod_info())
+		print("{0} items retrieved. Process will take around {1} minute(s)".format(amountOfItems, (amountOfItems * self.timeEstimate) / 60))
+		if self.retryCreate:
+			#calls method that tries to create amazon listing several more times if it errors out the first time
+			self.create_asins_v2()
+		else:
+			self.create_asins()
+		time.sleep(15)
+		self.amazon_inst.go_to_search_page()
+
+		#retrieves and then updates the ASIN descriptors in the catalog
+		#also deletes the barcodes that were used from the barcode table in the database
+		self.get_asins()
+		self.t_url = "https://catalog.amazon.com/abis/Classify/SelectCategory?itemType=collectible-single-trading-cards&productType=TOYS_AND_GAMES"
+
 
 
 	def m_process(self):
@@ -283,11 +421,16 @@ class Asin_update:
 			print("DELETING {0}".format(str(i)))
 			self.dbObject.cust_com("DELETE from barcodes WHERE barcode = \"{0}\";".format(i))
 
-	def get_asins(self, update = True):
+	def get_asins(self, update_all = False, update = True):
 		#if update argument is true then the method automatically updates the products in the catalog with their new ASINs
 		self.__asin_id_lst = []
 		self.amazon_inst.go_to_search_page()
-		p_ids = self.get_retr_lst()
+		#if update_all is true then it searches for ASINs using all of the product ids, even if they aren't on the retr_lst
+		if update_all:
+			p_ids = self.get_id_create_queue()
+			p_ids = [{"Product Id": str(i)} for i in p_ids]
+		else:
+			p_ids = self.get_retr_lst()
 		for i in p_ids:
 			self.__asin_id_lst.append(self.amazon_inst.grab_asin(i["Product Id"]))
 		if update:
@@ -345,6 +488,22 @@ class Asin_update:
 				break
 			else:
 				self.amazon_inst.browser.go_to("https://sellercentral.amazon.com/gp/homepage.html")
+	def AmazonUnavailable(self):
+		site = self.amazon_inst.source()
+		title = site.find("head").find('title')
+		if title is None:
+			return False
+		elif title.text == 'Website Temporarily Unavailable':
+			return True
+		else:
+			return False
+	def updateTest(self, p_id):
+		#static method for testing amazon update function
+		prod_info = self.cat_obj.get_product(p_ids)
+		self.amazon_inst.update_single(prod_info)
+
+
+
 
 
 

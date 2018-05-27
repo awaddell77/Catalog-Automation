@@ -1,9 +1,11 @@
 from Cat_session import *
 from Imprt_csv import *
+#legacy Cat_update class
+#do not modify for new programs
 
 class Cat_update(Cat_session):
-	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt', credFile2 = 'C:\\Users\\Owner\\Documents\\Important\\cat_cred2.txt', update_data='', req_crits=["Product Id"], req_not_empty = [] ):
-		super().__init__(credFile, '192.168.5.90', credFile2)
+	def __init__(self, credFile = 'C:\\Users\\Owner\\Documents\\Important\\catcred.txt',update_data='', req_crits=["Product Id"], req_not_empty = [] ):
+		super().__init__()
 		#self.driver = self.driver
 		self.__tbu_lst = []
 		self.__updated_lst = []
@@ -140,7 +142,6 @@ class Cat_update(Cat_session):
 		for i in range(0, len(update_items)):
 			go_to_res = self.go_to(update_items[i]["Product Id"])
 			go_to_upd = self.image_update(self.dir_n + update_items[i]["Product Image"])
-			print("Updated {0} (#{1} of {2})".format(str(update_items[i]["Product Id"]), str(i+1), str(len(update_items))))
 			if not go_to_res or not go_to_upd:
 				print("Failed to add item #{0} (\"{1}\")".format(str(i), update_items[i]["Product Image"]))
 				self.__fail_lst.append(update_items[i])

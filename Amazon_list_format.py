@@ -2,6 +2,7 @@
 import random
 from Im_dwnld import *
 from I_handling import *
+
 class Amzn_lst_single:
 	def __init__(self, values):
 		self.__values = values
@@ -12,6 +13,7 @@ class Amzn_lst_single:
 		self.__dir = "C:\\Users\\Owner\\Desktop\\I\\"
 		self.__d_opt = True
 		self.__keywords = 'teenage boys'
+		self.part_number = values.get("Card Number", str(random.randint(0, 100)))
 		if not isinstance(self.__values, dict):
 			raise TypeError("Param must be dictionary.")
 		self.__cat_form = False
@@ -54,8 +56,8 @@ class Amzn_lst_single:
 	def form(self):
 		#need to have special 'filter' that prevents promo cards from getting their category names added to their amazon listing names
 		if self.__values["Product Type"] == 'Yu-Gi-Oh Singles':
-			self.set_game('Yu-Gi-Oh')
-			self.set_man('yu-gi-oh')
+			self.set_game('Yu-Gi-Oh!')
+			self.set_man('Yu-Gi-Oh!')
 			self.set_keywords('teenage boys')
 			card = self.__ygo_form()
 			return card
@@ -79,13 +81,40 @@ class Amzn_lst_single:
 			return card
 		elif self.__values["Product Type"] == "Pokemon Singles":
 			self.set_game('Pokémon')
-			self.set_man("The pokemon company")
+			#self.set_man("The pokemon company")
+			self.set_man('Pokémon Company International')
 			self.set_keywords('teenage boys')
 			card = self.__pkm_form()
 			return card
-
+		elif self.__values["Product Type"] == "Dragon Ball Super TCG Singles":
+			self.set_game('Dragon Ball Super')
+			#self.set_man("The pokemon company")
+			self.set_man('Dragon Ball Super TCG')
+			self.set_keywords('teenage boys')
+			card = self.__dbs_form()
+			return card
+		elif self.__values["Product Type"] == "Dragoborne Singles":
+			self.set_game('Dragoborne')
+			#self.set_man("The pokemon company")
+			self.set_man('Dragoborne TCG')
+			self.set_keywords('teenage boys')
+			card = self.__dragoborne_form()
+			return card
+		elif self.__values["Product Type"] == "Star Wars Destiny Singles":
+			self.set_game("Star Wars Destiny")
+			self.set_man("Fantasy Flight Games")
+			self.set_keywords('teenage boys')
+			card = self.__swd_form()
+			return card
+		elif self.__values['Product Type'] == "Magic Products":
+			self.set_game('Magic: The Gathering (MTG)')
+			self.set_man("Wizards of the Coast")
+			self.set_keywords('teenage boys')
+			card = self.__mtg_sealed_form()
+			return card
 		else:
 			print("Product Type \"{0}\" is not recognized".format(self.__values["Product Type"]))
+			#TODO fix this, should return same datatype (in this case, a dictionary)
 	def __ygo_form(self):
 		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
 		#downloads the image the directory listed in the dir data field if d_opt is True
@@ -101,10 +130,12 @@ class Amzn_lst_single:
 		d["Product Name"] = full_name
 		d["Product Id"] = self.__values['Product Id']
 		d["MSRP"] = str(random.randint(1,301) / 100)
+		d['Brand'] = self.get_game()
 		d["Manufacturer"] = self.get_man()
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -126,7 +157,7 @@ class Amzn_lst_single:
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
@@ -139,12 +170,33 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG). This is of the ' + self.__values['Rarity'] + ' rarity.'
 		d["Product Image"] = self.__values["Product Image"]
 		d["Image Link"] = self.__values["Product Image Link"]
+		if self.get_d_opt():
+			d_inst = Im_dwnld(self.__dir)
+			#brackets are there because it needs to be a list
+			d_inst.i_main([d["Image Link"]])
+		return d
+	def __mtg_sealed_form(self):
+		d = {}
+		name = "Magic: The Gathering (MTG) - " + self.__values["Product Name"]
+		d['Product Name'] = name
+		d["Product Id"] = self.__values['Product Id']
+		d["MSRP"] = str(random.randint(1,301) / 100)
+		d["Manufacturer"] = self.get_man()
+		d["Ages"] = self.get_ages()
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
+		d["Product Image"] = self.__values["Product Image"]
+		d["Image Link"] = self.__values["Product Image Link"]
+		d['Description'] = 'Sealed Product from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
+		d["Product Type"] = "Sealed Product"
 		if self.get_d_opt():
 			d_inst = Im_dwnld(self.__dir)
 			#brackets are there because it needs to be a list
@@ -160,7 +212,7 @@ class Amzn_lst_single:
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
@@ -173,6 +225,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -188,13 +241,13 @@ class Amzn_lst_single:
 		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
 		#downloads the image the directory listed in the dir data field if d_opt is True
 		d = {}
-		card_name = self.__values["Product Name"]
+		card_name = self.__values["Product Name"].replace('<','').replace('>','').strip(' ')
 		cat_name = self.__values.get("Category", '')
 		if not self.__values.get("Set Name", ''):
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
@@ -207,6 +260,7 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:
@@ -217,7 +271,7 @@ class Amzn_lst_single:
 			d_inst = Im_dwnld(self.__dir)
 			#brackets are there because it needs to be a list
 			d_inst.i_main([d["Image Link"]])
-			image = I_handling(self.__dir + d["Product Image"])
+			image = I_handling(self.__dir + "\\" + d["Product Image"])
 			image.resize((250, 322))
 		return d
 
@@ -231,7 +285,7 @@ class Amzn_lst_single:
 			#if Set Name descriptor is empty
 			full_name = card_name + ' - ' + cat_name
 		elif self.__values.get("Set Name", '') != cat_name:
-			#if Set Name descriptor is different from category name 
+			#if Set Name descriptor is different from category name
 			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
 		else:
 			#if Set Name descriptor is the same as the category name
@@ -244,6 +298,120 @@ class Amzn_lst_single:
 		d["Ages"] = self.get_ages()
 		d["Keywords"] = self.get_keywords()
 		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
+		if not self.__values.get("Rarity", ''):
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
+		else:
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG). This is of the ' + self.__values['Rarity'] + ' rarity.'
+		d["Product Image"] = self.__values["Product Image"]
+		d["Image Link"] = self.__values["Product Image Link"]
+		if self.get_d_opt():
+			d_inst = Im_dwnld(self.__dir)
+			#brackets are there because it needs to be a list
+			d_inst.i_main([d["Image Link"]])
+		return d
+	def __dbs_form(self):
+		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
+		#downloads the image the directory listed in the dir data field if d_opt is True
+		d = {}
+		card_name = "Dragon Ball Super TCG - " + self.__values["Product Name"]
+		cat_name = self.__values.get("Category", '')
+		if not self.__values.get("Set Name", ''):
+			#if Set Name descriptor is empty
+			full_name = card_name + ' - ' + cat_name
+		elif self.__values.get("Set Name", '') != cat_name:
+			#if Set Name descriptor is different from category name
+			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
+		else:
+			#if Set Name descriptor is the same as the category name
+			full_name = card_name + ' - ' + self.__values.get("Set Name", '')
+		if self.__values["Card Number"] not in full_name and self.__values["Card Number"]:
+			full_name += " - " + self.__values["Card Number"]
+
+		d["Product Name"] = full_name
+		d["Product Id"] = self.__values['Product Id']
+		d["MSRP"] = str(random.randint(1,301) / 100)
+		d["Manufacturer"] = self.get_man()
+		d["Ages"] = self.get_ages()
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
+		if not self.__values.get("Rarity", ''):
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
+		else:
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG). This is of the ' + self.__values['Rarity'] + ' rarity.'
+		d["Product Image"] = self.__values["Product Image"]
+		d["Image Link"] = self.__values["Product Image Link"]
+		if self.get_d_opt():
+			d_inst = Im_dwnld(self.__dir)
+			#brackets are there because it needs to be a list
+			d_inst.i_main([d["Image Link"]])
+		return d
+
+	def __dragoborne_form(self):
+		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
+		#downloads the image the directory listed in the dir data field if d_opt is True
+		d = {}
+		card_name = self.__values["Product Name"]
+		cat_name = self.__values.get("Category", '')
+		if not self.__values.get("Set Name", ''):
+			#if Set Name descriptor is empty
+			full_name = card_name + ' - ' + cat_name
+		elif self.__values.get("Set Name", '') != cat_name:
+			#if Set Name descriptor is different from category name
+			full_name = card_name + ' - ' + self.__values.get("Set Name", '') + ' - (' + cat_name + ')'
+		else:
+			#if Set Name descriptor is the same as the category name
+			full_name = card_name + ' - ' + self.__values.get("Set Name", '')
+
+		d["Product Name"] = full_name
+		d["Product Id"] = self.__values['Product Id']
+		d["MSRP"] = str(random.randint(1,301) / 100)
+		d["Manufacturer"] = self.get_man()
+		d["Ages"] = self.get_ages()
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
+		if not self.__values.get("Rarity", ''):
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
+		else:
+			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG). This is of the ' + self.__values['Rarity'] + ' rarity.'
+		d["Product Image"] = self.__values["Product Image"]
+		d["Image Link"] = self.__values["Product Image Link"]
+		if self.get_d_opt():
+			d_inst = Im_dwnld(self.__dir)
+			#brackets are there because it needs to be a list
+			d_inst.i_main([d["Image Link"]])
+			image = I_handling(self.__dir + d["Product Image"])
+			image.resize((250, 322))
+		return d
+	def __swd_form(self):
+		#returns dictionary containing Product Name, Product Id, MSRP, Description, Product Image, and Image Link
+		#downloads the image the directory listed in the dir data field if d_opt is True
+		d = {}
+		card_name = self.__values["Product Name"]
+		cat_name = self.__values.get("Category", '')
+		if not self.__values.get("Set", ''):
+			#if Set Name descriptor is empty
+			full_name = card_name + ' - ' + cat_name
+		elif self.__values.get("Set", '') != cat_name:
+			#if Set Name descriptor is different from category name
+			full_name = card_name + ' - ' + self.__values.get("Set", '') + ' - (' + cat_name + ')'
+		else:
+			#if Set Name descriptor is the same as the category name
+			full_name = card_name + ' - ' + self.__values.get("Set", '')
+		if self.__values["Card Number"] not in full_name and self.__values["Card Number"]:
+			full_name += " - " + self.__values["Card Number"]
+		full_name += " (Star Wars Destiny TCG)"
+
+		d["Product Name"] = full_name
+		d["Product Id"] = self.__values['Product Id']
+		d["MSRP"] = str(random.randint(1,301) / 100)
+		d["Manufacturer"] = self.get_man()
+		d["Ages"] = self.get_ages()
+		d["Keywords"] = self.get_keywords()
+		d["Barcode Type"] = 'ean'
+		d["Part Number"] = self.part_number
 		if not self.__values.get("Rarity", ''):
 			d['Description'] = 'An individual card from the ' + self.get_game() + ' trading and collectible card game (TCG/CCG).'
 		else:

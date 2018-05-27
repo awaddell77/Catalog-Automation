@@ -5,12 +5,13 @@ import os
 def w_csv(x,output='FCfile.csv'):
     #accepts lists of other lists, spits out CSV file
     count = 1
+    fname = output.split('.')[0]
     while file_present(output):
-        output = output.split('.')[0] + "-" + str(count) + '.csv'
+        output = fname + "-" + str(count) + '.csv'
         count += 1
         if not file_present(output):
             break
- 
+
 
     csv_out = open(output, 'w', newline='', encoding='utf-8')
     mywriter = csv.writer(csv_out)
@@ -22,7 +23,7 @@ def w_csv(x,output='FCfile.csv'):
 
     mywriter.writerows(x)
     csv_out.close()
-    
+
 def file_present(x):
     #only checks current working directory
     full_path = os.getcwd() + '\\' + x
