@@ -110,6 +110,7 @@ class Db_mngmnt(object):
 	def retr_columns(self, table, dtypes = 0):
 		#retrieves the column names, returns them in a list
 		#if dtypes is not 0 then it returns them in a list of tuples (column name, data type)
+		#example: [('id', 'int(11)'), ('name', 'varchar(255)'), ('product_type_id', 'int(11)')...]
 
 		resp = self.query("SHOW COLUMNS from {0};".format(table))
 		if dtypes == 0:
@@ -120,6 +121,27 @@ class Db_mngmnt(object):
 			for i in resp:
 				results.append((i[0], i[1]))
 			return results
+	def retr_columns2(self, table):
+		#retrieves the column names, returns them in a list
+		#if dtypes is not 0 then it returns them as a list of dictionaries
+		#example: [{'id':'int(11)', 'name':'varchar(255)', 'product_type_id':'int(11)')...}, {'id':'int(11)', ...}...]
+
+		resp = self.query("SHOW COLUMNS from {0};".format(table))
+		results = {}
+		for i in resp:
+			results[i[0]] = i[1]
+		return results
+	def retr_columns3(self, table):
+		#retrieves the column names and data type
+		#returns a dictionary with the tuple objects containing the column name and data type as the key {('id', 'int(11)'):table_name}
+
+		resp = self.query("SHOW COLUMNS from {0};".format(table))
+
+		results = {}
+		for i in resp:
+			results[(i[0], i[1])] = [table]
+			#table is a list because the value will be used to store multiple names later on
+		return results
 	def tables(self):
 		resp = self.__comm("SHOW tables;", 1)
 		tables = [i[0] for i in resp]
@@ -141,11 +163,61 @@ class Db_mngmnt(object):
 	        return "0" + str(x)
 	    else:
 	        return str(x)
+	def rel_finder(self):
+		tables = self.tables()
+		table_d = {}
+		col_to_table_name = {}
+		for i in tables:
+			self.col_table_d_update(col_to_table_name, self.retr_columns3(i))
+
+		#table_names = list(table_d.keys())
+		#tables_n = list(tables_d.keys())
+		#for tables in tables_n:
+			#pass
+		return col_to_table_name
+	def col_table_d_update(self, col_d, n_col_d):
+		if not col_d: col_d.update(n_col_d)
+		keys1 = list(col_d.keys())
+		keys2 = list(n_col_d.keys())
+		s = set(keys1+keys2)
+		print("Set is: {0}".format(s))
+		for k in s:
+			#values should be lists
+			#TODO: Optimize
+			if n_col_d.get(k, False) and not col_d.get(k, False): 
+				col_d[k] = n_col_d[k]
+			#elif not col_d(k, False) and n_col: col_d[k] = n_col_d[k]
+			else: col_d[k] += n_col_d.get(k, [])
+		#return col_d
+
+
+
+
+
+	def table_compare(self, table1, table2):
+		#compares the columns in table to the colums of ever other table contained in the table_d dictionary
+		results = {'Related':[], 'Non-related':[]}
+		t1keys = list(table1.keys())
+		t2keys = list(table2.keys())
+		#TODO: check time complexity of built-in sort function for dict
+		for i in t1.keys:
+			if t2keys.get(i, False): results['Related'].append(i)
+			else: results['Non-related'].append(i)
+		if results['Related']: results['Related'] = results['Related'].sort()
+		if results['Non-related']: results['Non-related'] = results['Non-related'].sort()
+		return results
+			
+
 
 def string_cleanse(x):
 	new = re.sub('"', '', x)
 	new2 = re.sub("'", '', new)
 	return new2
+
+
+
+
+
 
 '''
 def login(user, password, database = '', host= '127.0.0.1'):
